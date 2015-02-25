@@ -1,7 +1,7 @@
 #ifndef CONSEQUENT
 #define CONSEQUENT
 
-#include "types.h"
+#include "ruletypes.h"
 #include <QtGlobal>
 
 class CConsequent
@@ -17,6 +17,8 @@ class CConsequent
 
     qint32 add(Nominal v) {++n; return ++values[v];}
     void clear() { values.clear(); n = 0; t = 0; }
+    bool find(Nominal n) const { return values.find(n) != values.constEnd(); }
+    qint32 valuesCount() const { return values.size(); }
 };
 
 #endif // CONSEQUENT

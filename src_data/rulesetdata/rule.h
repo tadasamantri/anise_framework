@@ -1,8 +1,9 @@
 #ifndef RULE
 #define RULE
 
-#include "types.h"
+#include "ruletypes.h"
 #include "consequent.h"
+#include <QDebug>
 
 class CRule
 {
@@ -32,7 +33,7 @@ class CRule
     }
 
     // For sorting rules by max n/r, and by min anteceedents if equal
-    bool operator<(const CRule &r)
+    bool operator<(const CRule &r) const
     {
         const qint32 nr1 = consequent.n * r.consequent.values.size();
         const qint32 nr2 = r.consequent.n * consequent.values.size();
@@ -41,7 +42,7 @@ class CRule
                  i_antecedents.size() < r.i_antecedents.size());
     }
 
-    bool match(const QList<Nominal> &a) const
+    bool matchAntecedents(const Antecedent &a) const
     {
         qint32 ante_size = i_antecedents.size();
         for(qint32 i = 0; i < ante_size; ++i) {
@@ -50,6 +51,16 @@ class CRule
             }
         }
         return true;
+    }
+
+    bool matchConsequent(const Antecedent &a) const
+    {
+        if(i_consequent >= a.size() || i_consequent <= -1) {
+            qWarning() << "Cannot match consequents.";
+            return false;
+        }
+        // Return true if we find a match.
+        return consequent.find(a[i_consequent]);
     }
 };
 
