@@ -26,3 +26,18 @@ nodes. A collection of nodes and how they are connected is known as a mesh. Node
 meshes and contexts. Each node receives and forwards a particular (and predefined) type of data. As long as
 the nodes receive the type of data they expect, they can be used in different places. This enables the
 creation of reusable components that can be shared among different algorithms.
+
+## ANISE Components ##
+
+![ANISE Components](http://undeadkernel.github.io/anise_images/components.png)
+
+### The Gate ###
+
+Nodes in the ANISE framework communicate by receiving and forwarding data among each other. Gates are the
+means by which nodes connect to each other. A gate *belongs to only one node* and specifies the *type of data*
+the gate can handle. Gates can only connect to other gates of the same type.
+
+### The Node ###
+
+Nodes are the core of the ANISE framework. Each node is a logical unit capable of receiving, processing and
+forwarding data to other nodes. Nodes
