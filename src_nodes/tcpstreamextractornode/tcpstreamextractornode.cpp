@@ -22,6 +22,8 @@ CTcpStreamExtractorNode::CTcpStreamExtractorNode(const CNodeConfig &config,
 
 void CTcpStreamExtractorNode::configure(CNodeConfig &config)
 {
+    config.setDescription("Extract streams from TCP packets.");
+
     // Add parameters
     config.addUInt("payload_size", "TCP Stream Data Size",
                    "The maximum number of bytes that will be stored for "
@@ -118,9 +120,6 @@ void CTcpStreamExtractorNode::data(QString gate_name,
         qint32 packet_count = tcp_dump->availablePackets();
         for(qint32 i = 0; i < packet_count; ++i) {
             QSharedPointer<const CTcpDumpPacket> packet = tcp_dump->getPacket(i);
-//            if(packet->src() == 3319443781 && packet->src_port() == 4168 && packet->dest() == 2886758706) {
-//                qDebug() << "here I am";
-//            }
             if(dest_filter) {
                 if(packet->dest() < ip_from || packet->dest() >= ip_to ||
                    packet->dest_port() < port_from ||
@@ -135,6 +134,8 @@ void CTcpStreamExtractorNode::data(QString gate_name,
         qDebug() << "TCP streams left open:" << m_tcp_streams->openStreamsCount();
 
         commit("out", m_tcp_streams);
+        // Clear the memory used by m_tcp_streams.
+        m_tcp_streams.clear();
         return;
     }
 }

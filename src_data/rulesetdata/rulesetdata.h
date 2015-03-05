@@ -28,7 +28,8 @@ class CRulesetData: public CData
     // Reserve space for the rules.
     void reserve(qint32 space) { m_ruleset.reserve(space); }
     // Retreive or add a string to nominal.
-    inline qint32 nominal(QString string);
+    inline qint32 string2nominal(QString string);
+    QString nominal2string(qint32 nominal) { return m_nominal2string[nominal]; }
     // Create a rule from a list of antecedents and add it.
     inline void addRule(Antecedent &a);
     // Get a modifiable list of all rules.
@@ -49,7 +50,7 @@ class CRulesetData: public CData
 };
 
 
-qint32 CRulesetData::nominal(QString string)
+qint32 CRulesetData::string2nominal(QString string)
 {
     qint32 n;
 

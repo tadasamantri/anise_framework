@@ -13,6 +13,7 @@
 
 CTcpStreamFeaturesNode::CTcpStreamFeaturesNode(const CNodeConfig &config, QObject *parent/* = 0*/)
     : CNode(config, parent)
+    , m_processed_streams(0)
 {
 
 }
@@ -53,6 +54,57 @@ void CTcpStreamFeaturesNode::configure(CNodeConfig &config)
 // Protected Functions
 
 bool CTcpStreamFeaturesNode::start()
+{
+    return createFeaturesTable();
+}
+
+void CTcpStreamFeaturesNode::data(QString gate_name, const CConstDataPointer &data)
+{
+    Q_UNUSED(gate_name);
+
+    // Process framework messages.
+    if(data->getType() == "message") {
+        auto pmsg = data.staticCast<const CMessageData>();
+        QString msg = pmsg->getMessage();
+        qDebug() << "Received message:" << msg;
+        if(msg == "error") {
+            commitError("out", "Could not get tcp streams.");
+            return;
+        }
+    }
+    // Process TCP streams.
+    else if(data->getType() == "tcpstreams") {
+        auto tcp_streams = data.staticCast<const CTcpStreamsData>();
+
+        // Optimize the row allocation space for the table.
+        m_table->reserveRows(tcp_streams->totalStreamsCount());
+
+        // Process the closed streams.
+        auto closed_streams_it = tcp_streams->getClosedStreams().constBegin();
+        for(; closed_streams_it != tcp_streams->getClosedStreams().constEnd(); ++closed_streams_it) {
+            extractFeatures(*closed_streams_it);
+        }
+        // Process the open streams.
+        auto open_streams_it = tcp_streams->getOpenStreams().constBegin();
+        for(; open_streams_it != tcp_streams->getOpenStreams().constEnd(); ++open_streams_it) {
+            extractFeatures(*open_streams_it);
+        }
+
+        ++m_processed_streams;
+
+        if(m_processed_streams == getInputCount("in")) {
+            // We have processed all the streams. Commit and finish.
+            // Sort by date and then time (fields 0 and 1).
+            m_table->sort(0, 1);
+            // Commit.
+            commit("out", m_table);
+            // Free memory when the table is no longer in use.
+            m_table.clear();
+        }
+    }
+}
+
+bool CTcpStreamFeaturesNode::createFeaturesTable()
 {
     m_table = QSharedPointer<CTableData>(
                 static_cast<CTableData *>(createData("table")));
@@ -122,44 +174,6 @@ bool CTcpStreamFeaturesNode::start()
     }
     else {
         return false;
-    }
-}
-
-void CTcpStreamFeaturesNode::data(QString gate_name, const CConstDataPointer &data)
-{
-    Q_UNUSED(gate_name);
-
-    // Process framework messages.
-    if(data->getType() == "message") {
-        auto pmsg = data.staticCast<const CMessageData>();
-        QString msg = pmsg->getMessage();
-        qDebug() << "Received message:" << msg;
-        if(msg == "error") {
-            commitError("out", "Could not get tcp streams.");
-            return;
-        }
-    }
-    else if(data->getType() == "tcpstreams") {
-        auto tcp_streams = data.staticCast<const CTcpStreamsData>();
-
-        // Optimize the row allocation space for the table.
-        m_table->setRows(tcp_streams->totalStreamsCount());
-
-        // Process the closed streams.
-        auto closed_streams_it = tcp_streams->getClosedStreams().constBegin();
-        for(; closed_streams_it != tcp_streams->getClosedStreams().constEnd(); ++closed_streams_it) {
-            extractFeatures(*closed_streams_it);
-        }
-        // Process the open streams.
-        auto open_streams_it = tcp_streams->getOpenStreams().constBegin();
-        for(; open_streams_it != tcp_streams->getOpenStreams().constEnd(); ++open_streams_it) {
-            extractFeatures(*open_streams_it);
-        }
-
-        // Sort by date and then time (fields 0 and 1).
-        m_table->sort(0, 1);
-
-        commit("out", m_table);
     }
 }
 

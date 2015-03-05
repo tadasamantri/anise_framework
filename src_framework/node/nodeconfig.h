@@ -55,7 +55,8 @@ class CNodeConfig
 
     // Facilities for adding different parameters to the configuration
     // ... template.
-    void addFilename(QString key, QString name, QString description);
+    void addFilename(QString key, QString name, QString description,
+                     QString def_val = "");
     void addBool(QString key, QString name, QString description,
                  bool def_val = false);
     void addInt(QString key, QString name, QString description,

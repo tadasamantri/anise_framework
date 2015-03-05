@@ -98,8 +98,8 @@ void CLeradNode::lerad(const QSharedPointer<const CTableData> &table)
     qsrand(getConfig().getParameter("rseed")->value.toUInt());
 
     // Helpers for translating nominals to strings and viceversa.
-    qint32 anything_nominal = m_ruleset->nominal("*");
-    qint32 something_nominal = m_ruleset->nominal("?");
+    qint32 anything_nominal = m_ruleset->string2nominal("*");
+    qint32 something_nominal = m_ruleset->string2nominal("?");
 
     // Number of attributes
     qint32 attribute_count = table->getColCount();
@@ -122,7 +122,7 @@ void CLeradNode::lerad(const QSharedPointer<const CTableData> &table)
         for(qint32 i = 0; i < attribute_count; ++i) {
             // Convert attribute to nominal.
             QString attr = row[i].toString();
-            qint32 n = m_ruleset->nominal(attr);
+            qint32 n = m_ruleset->string2nominal(attr);
             t.append(n);
         }
         dataset.append(t);
@@ -342,6 +342,8 @@ void CLeradNode::lerad(const QSharedPointer<const CTableData> &table)
 
     // Forward the ruleset.
     commit("out", m_ruleset);
+    // Free memory when possible.
+    m_ruleset.clear();
 }
 
 void CLeradNode::dumpRules(const QList<QString> &header,
@@ -361,7 +363,7 @@ void CLeradNode::dumpRules(const QList<QString> &header,
     auto it_rule = ruleset.begin();
     while(it_rule != ruleset.end()) {
         const CRule &rule = *it_rule;
-        file_stream << i + 1 << " "
+        file_stream << i << " "
                     << rule.consequent.n << "/" << rule.consequent.values.size()
                     << "\tif";
 

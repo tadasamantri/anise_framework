@@ -23,12 +23,6 @@ class CNode : public QObject
   friend CNodeGateTask;
   friend CNodeStartTask;
 
-  protected:
-    // Collection of input gates.
-    QList<QSharedPointer<CGate>> m_input_gates;
-    // Collection of output gates.
-    QList<QSharedPointer<CGate>> m_output_gates;
-
   signals:
     // Emitted with 'true' when the node starts processing, 'false'
     // ... when it becomes idle.
@@ -76,8 +70,15 @@ class CNode : public QObject
     void commit(QString gate_name, const CConstDataPointer &data);
     // Send an Error message through the specified gate.
     void commitError(QString gate_name, QString error_msg);
+    // Return the number of incomming connections into a particular gate.
+    qint32 getInputCount(QString gate_name);
 
   private:
+    // Collection of input gates.
+    QList<QSharedPointer<CGate>> m_input_gates;
+    // Collection of output gates.
+    QList<QSharedPointer<CGate>> m_output_gates;
+    // The configuration parameters of this node.
     const CNodeConfig m_config;
     // The Data creation Factory.
     CDataFactory *m_data_factory;

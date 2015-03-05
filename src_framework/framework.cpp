@@ -145,6 +145,8 @@ void CFramework::printNodes(bool pretty_print)
             json_param["name"] = param_template->name;
             json_param["type"] =
                     QString(QVariant::typeToName(param_template->type));
+            json_param["default"] = QJsonValue::fromVariant(
+                        param_template->value);
             json_param["description"] = param_template->description;
             json_parameters.append(json_param);
         }
