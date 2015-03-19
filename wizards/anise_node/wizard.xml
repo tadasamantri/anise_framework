@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Custom project wizard configuration example file. Note that by convention,
+the project file goes last.
+The "class" and "firstpage" attributes specify that it is a Qt 4 wizard and
+leave room for the Qt 4 target page.
+-->
+<wizard version="1" kind="project"
+        class="qmakeproject" firstpage="10"
+        id="A.Node" category="B.AniseFramework">
+    <icon>console.png</icon>
+    <description>Create a new Node for the ANISE Framework.</description>
+    <displayname>Node</displayname>;
+    <displaycategory>ANISE Framework</displaycategory>
+    <files>
+        <file source="interface.cpp" openeditor="false"/>
+        <file source="interface.h" openeditor="false"/>
+        <file source="skeleton.cpp" target="%ProjectName:l%node.cpp" openeditor="true"/>
+        <file source="skeleton.h" target="%ProjectName:l%node.h" openeditor="true"/>
+        <file source="skeleton.pro.ske" target="%ProjectName:l%node.pro" openproject="false"/>
+    </files>
+    <!-- Create a 2nd wizard page with parameters -->
+    <!-- <fieldpagetitle>Hello World Parameters</fieldpagetitle> -->
+    <!-- <fieldpagetitle xml:lang="de">Hallo Welt Parameter</fieldpagetitle> -->
+    <!-- <fields> -->
+    <!--     <field mandatory="true" name="MESSAGE"> -->
+    <!--         <fieldcontrol class="QLineEdit" validator='^[^"]+$' -->
+    <!--                       defaulttext="Hello world from project  '%ProjectName:c%'!" placeholdertext="Enter a message"/> -->
+    <!--         <fielddescription>Hello world message:</fielddescription> -->
+    <!--         <fielddescription xml:lang="de">Hallo-Welt-Nachricht:</fielddescription> -->
+    <!--     </field> -->
+    <!-- Checkbox technique 1: Comment out network in profile according to user's wishes -->
+    <!--     <field name="NETWORK"> -->
+    <!--         <fieldcontrol class="QCheckBox" truevalue="" falsevalue="# "/> -->
+    <!--         <fielddescription>Include network module</fielddescription> -->
+    <!--         <fielddescription xml:lang="de">Netzwerk-Modul verwenden</fielddescription> -->
+    <!--     </field> -->
+    <!-- Checkbox technique 2: Use preprocessor for profile according to user's wishes -->
+    <!--     <field name="SCRIPT"> -->
+    <!--         <fieldcontrol class="QCheckBox"/> -->
+    <!--         <fielddescription>Include script module</fielddescription> -->
+    <!--         <fielddescription xml:lang="de">Script-Modul verwenden</fielddescription> -->
+    <!--     </field> -->
+    <!-- </fields> -->
+</wizard>
