@@ -34,7 +34,7 @@ CDataFactory &CDataFactory::instance()
 
 void CDataFactory::loadLibraries()
 {
-    CDynamicFactory::loadLibraries("./data", "lib*data.so",
+    CDynamicFactory::loadLibraries("data", "lib*data.so",
         RTLD_NOW | RTLD_GLOBAL);
 }
 

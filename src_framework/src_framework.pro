@@ -1,7 +1,7 @@
 QT       += core
 QT       -= gui
 
-TARGET = anise-framework
+TARGET = anise.bin
 CONFIG += console
 CONFIG -= app_bundle
 QMAKE_CXXFLAGS += -std=c++11
@@ -36,6 +36,12 @@ CONFIG(debug,debug|release) {
   #DEFINES += QT_NO_DEBUG_OUTPUT
   #QMAKE_CXXFLAGS_RELEASE += -O2
 }
+
+# Install the script that sets the correct library path.
+anise.path = $$DESTDIR
+anise.files = resources/anise.sh
+
+INSTALLS += anise
 
 QMAKE_CLEAN += $$DESTDIR/*$$TARGET*
 

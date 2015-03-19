@@ -31,7 +31,7 @@ CNodeFactory &CNodeFactory::instance()
 
 void CNodeFactory::loadLibraries()
 {
-    CDynamicFactory::loadLibraries("./nodes", "lib*node.so", RTLD_NOW);
+    CDynamicFactory::loadLibraries("nodes", "lib*node.so", RTLD_NOW);
 }
 
 bool CNodeFactory::nodeAvailable(QString node_class)

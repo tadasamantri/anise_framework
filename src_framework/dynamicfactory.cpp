@@ -2,6 +2,7 @@
 #include <QDir>
 #include <QStringList>
 #include <QDebug>
+#include <QCoreApplication>
 
 //------------------------------------------------------------------------------
 // Constructor and Destructor
@@ -17,8 +18,9 @@ CDynamicFactory::CDynamicFactory()
 
 void CDynamicFactory::loadLibraries(QString folder, QString filter, int flags)
 {
+    QDir exec_dir(QCoreApplication::applicationDirPath());
     // Look in the given dictionary.
-    QDir dir(folder);
+    QDir dir = exec_dir.filePath(folder);
     // Search only for files.
     dir.setFilter(QDir::Files);
     // Only list files ending with .so
@@ -29,8 +31,7 @@ void CDynamicFactory::loadLibraries(QString folder, QString filter, int flags)
     QStringList list = dir.entryList();
 
     for(auto it = list.begin(); it != list.end(); ++it) {
-        QString filename;
-        filename = folder + "/" + (*it).toLocal8Bit().constData();
+        QString filename = dir.filePath(*it);
         // Open the library file.
         void *handle = dlopen(filename.toLocal8Bit().constData(), flags);
         if(handle == NULL) {
