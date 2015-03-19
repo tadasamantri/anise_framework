@@ -22,23 +22,16 @@ CDataPointer CTcpStreamsData::clone() const
     return CDataPointer();
 }
 
-void CTcpStreamsData::addTcpPacket(const QSharedPointer<const CTcpDumpPacket> &tcp_packet)
+void CTcpStreamsData::addTcpPacket(
+        const QSharedPointer<const CTcpDumpPacket> &tcp_packet)
 {
-    // Ignore non IP packets.
+    // Ignore non TCP packets.
     if(!tcp_packet->tcp) {
         return;
     }
 
-    // Get the length of the payload.
-    qint32 payload_length = tcp_packet->end - tcp_packet->appl;
-
-    // Ignore packages with no payload that are irrelevant to the streams' status.
-    if(payload_length == 0 && !tcp_packet->syn() &&
-       !tcp_packet->fin() && !tcp_packet->rst()) {
-        return;
-    }
-
-    // Get the key associated with this TCP stream and get the Stream (if any).
+    // Get the key associated with this TCP stream and get the Stream
+    // ... (or create a new one).
     CTcpKey tcp_key = CTcpKey(tcp_packet);
     CTcpStream &tcp_stream = m_tcp_open_streams[tcp_key];
 
@@ -48,13 +41,22 @@ void CTcpStreamsData::addTcpPacket(const QSharedPointer<const CTcpDumpPacket> &t
         tcp_stream.init(tcp_packet);
     }
 
-    // Update the stream records.
+    // Update the stream records with details of the packet.
     tcp_stream.update(tcp_packet);
 
-    // Store the payload of the packet into the stream.
+    // Get the length of the payload available.
+    qint32 payload_length = tcp_packet->capture_length - tcp_packet->appl;
+
+    // Get the theoretical length of the packet.
+    qint32 data_length = tcp_packet->frame_length - tcp_packet->appl;
+
+    // Update the real communication time.
+    tcp_stream.data_length += data_length;
+
+    // Store the payload of the packet in the stream.
     if(payload_length > 0) {
         // Record the payload length.
-        tcp_stream.data_size += payload_length;
+        tcp_stream.payload_size += payload_length;
         // Where to store the payload.
         qint32 offset = tcp_packet->tcpseq() - tcp_stream.seq;
         if(offset >= 0 && offset < static_cast<qint32>(m_max_payload_size)) {

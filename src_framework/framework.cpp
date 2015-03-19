@@ -54,23 +54,27 @@ void CFramework::main()
     // Set the command line options.
     // The --machine option: Output is meant to be processed by a program
     // ... rather than a human.
-    QCommandLineOption machineOption("machine",
+    QCommandLineOption machine_option("machine",
         "The output is printed in a more friendly way for the purpose of being parsed.");
-    parser.addOption(machineOption);
+    parser.addOption(machine_option);
     // The --nodes option
-    QCommandLineOption nodesOption("nodes",
+    QCommandLineOption nodes_option("nodes",
                                    "Print all the nodes the framework recognizes. "
                                    "Exit after printing the nodes.");
-    parser.addOption(nodesOption);
+    parser.addOption(nodes_option);
+    // The --progress option
+    QCommandLineOption progress_option("progress",
+                                       "Show the progress of the nodes.");
+    parser.addOption(progress_option);
 
     parser.process(*QCoreApplication::instance());
 
 
     // Are we printing to the console for the humans or for the machines?
-    if(!parser.isSet(machineOption)) {
+    if(!parser.isSet(machine_option)) {
         // Enable pretty printing with out own custom message writer.
         // QT4:
-     // qInstallMsgHandler(customMessageWriterQt4);
+        // qInstallMsgHandler(customMessageWriterQt4);
         // QT5:
         qInstallMessageHandler(humanMessageWriterQt5);
     }
@@ -85,11 +89,14 @@ void CFramework::main()
     CNodeFactory::instance().loadLibraries();
 
     // Evaluate the parameters
-    if(parser.isSet(nodesOption)) {
+    if(parser.isSet(nodes_option)) {
         // Only print the nodes and exit.
-        printNodes(!parser.isSet(machineOption));
+        printNodes(!parser.isSet(machine_option));
         QCoreApplication::exit(0);
         return;
+    }
+    if(parser.isSet(progress_option)) {
+        CNode::enableProgressReporting(true, !parser.isSet(machine_option));
     }
 
     // Evaluate the Arguments
@@ -155,7 +162,7 @@ void CFramework::printNodes(bool pretty_print)
         QJsonArray json_input_gates;
         QJsonArray json_output_gates;
         // Get the input gates as JSON objects.
-        const QList<CNodeConfig::SGateTemplate> input_gates = \
+        const QList<CNodeConfig::SGateTemplate> input_gates =
                 config.getInputTemplates();
         for(int i = 0; i < input_gates.size(); ++i) {
             QJsonObject json_gate;
@@ -164,7 +171,7 @@ void CFramework::printNodes(bool pretty_print)
             json_input_gates.append(json_gate);
         }
         // Get the output gates as JSON objects.
-        const QList<CNodeConfig::SGateTemplate> output_gates = \
+        const QList<CNodeConfig::SGateTemplate> output_gates =
                 config.getOutputTemplates();
         for(int i = 0; i < output_gates.size(); ++i) {
             QJsonObject json_gate;

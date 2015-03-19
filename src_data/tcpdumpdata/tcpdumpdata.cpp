@@ -128,23 +128,20 @@ quint32 CTcpDumpData::parsePackets(const QByteArray &blob, quint32 offset)
         offset += 4;
         p->time += get4Bytes(blob, offset) * 0.000001; // Microseconds
         offset += 4;
-        quint32 len1 = get4Bytes(blob, offset);
+        // The number of bytes captured in the tcp dump.
+        p->capture_length = get4Bytes(blob, offset);
         offset += 4;
-        quint32 len2 = get4Bytes(blob, offset);
+        // The theoretical size of the packet.
+        p->frame_length = get4Bytes(blob, offset);
         offset += 4;
-        if(len1 != len2) {
-            qWarning() << "Missmatched length found in TCP packet.";
-            return offset;
-        }
-        if(len1 > 65535) {
-            // TODO: handle this somehow.
+        if(p->frame_length > 65535) {
             qWarning() << "Packet size too large.";
             return offset;
         }
 
-        // Read ethernet part of packet.
-        p->data.resize(len1);
-        for(quint32 i = 0; i < len1; ++i) {
+        // Read ethernet part of packet that was captured.
+        p->data.resize(p->capture_length);
+        for(quint32 i = 0; i < p->capture_length; ++i) {
             quint8 byte;
             if(offset < blob_size) {
                 byte = blob.at(offset++);
@@ -161,7 +158,7 @@ quint32 CTcpDumpData::parsePackets(const QByteArray &blob, quint32 offset)
 
         // Parse the EtherType.
         // Set ip to the offset 14 if this packet is a IPv4 packet.
-        if (p->data.size() > 34 &&
+        if (p->capture_length > 34 &&
             p->get2(12) == 0x800 &&
             (p->get1(14) & 0xf0) == 0x40) {
             p->ip=14;

@@ -53,8 +53,14 @@ void humanMessageWriterQt5(QtMsgType type, const QMessageLogContext &context, co
         case QtDebugMsg:
             out << QTime::currentTime().toString("hh:mm:ss.zzz")
                 << BLUE   << "     Info: " << GREEN
-                << context.function << ":" << context.line << " " << COLOR_RESET
-                << msg << endl;
+                << context.function << ":" << context.line << " " << COLOR_RESET;
+            // Remove the '@' in messages that start with it.
+            if(msg.at(0) == '@') {
+                out << msg.mid(1) << endl;
+            }
+            else {
+                out << msg << endl;
+            }
             break;
         case QtWarningMsg:
             err << QTime::currentTime().toString("hh:mm:ss.zzz")
@@ -73,6 +79,7 @@ void humanMessageWriterQt5(QtMsgType type, const QMessageLogContext &context, co
                 << RED    << "    FATAL: " << GREEN
                 << context.function << ":" << context.line << " " << COLOR_RESET
                 << msg << endl;
+            abort();
             break;
     }
 }

@@ -8,16 +8,21 @@ class CTcpDumpPacket
   public:
     // Seconds since 1970
     double time;
-    // Ethernet header
+    // Bytes captured in this packet.
+    quint32 capture_length;
+    // The original length of the packet.
+    quint32 frame_length;
+    // Captured packet data
     QVector<quint8> data;
     // Offsets in "data" pointing to specific parts in the packet.
     // ip - position in "data" where the IP header starts
     // tcp - position in "data" where the TCP header starts
     // appl - position where application data begins
-    // end - offset at the end of the packet
+    // end - offset at the end of the data
     qint32 ip, tcp, udp, icmp, appl, end;
 
-    CTcpDumpPacket(): time(0), ip(0), tcp(0), udp(0), icmp(0), appl(0), end(0) {}
+    CTcpDumpPacket(): time(0), capture_length(0), frame_length(0),
+        ip(0), tcp(0), udp(0), icmp(0), appl(0), end(0) {}
 
     // Get numeric fields of 1, 2, or 4 bytes
     quint8 get1(qint32 offset) const {return data[offset];}

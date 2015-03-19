@@ -43,6 +43,8 @@ void CTcpStreamFeaturesNode::configure(CNodeConfig &config)
                   8);
     config.addUInt("word_length", "Maximum Length of a Word",
                    "The number of characters a word can be matched to.", 16);
+    config.addBool("packet_count", "Show Packet Count",
+                   "Include the total number of packets parsed by the stream.", false);
 
     // Add the gates.
     config.addInput("in", "tcpstreams");
@@ -76,8 +78,14 @@ void CTcpStreamFeaturesNode::data(QString gate_name, const CConstDataPointer &da
     else if(data->getType() == "tcpstreams") {
         auto tcp_streams = data.staticCast<const CTcpStreamsData>();
 
+        // Report that we are starting.
+        if(m_processed_streams == 0) {
+            setProgress(0);
+        }
+
         // Optimize the row allocation space for the table.
-        m_table->reserveRows(tcp_streams->totalStreamsCount());
+        m_table->reserveRows(m_table->getRowCount() +
+                             tcp_streams->totalStreamsCount());
 
         // Process the closed streams.
         auto closed_streams_it = tcp_streams->getClosedStreams().constBegin();
@@ -100,6 +108,11 @@ void CTcpStreamFeaturesNode::data(QString gate_name, const CConstDataPointer &da
             commit("out", m_table);
             // Free memory when the table is no longer in use.
             m_table.clear();
+
+            setProgress(100);
+        }
+        else {
+            setProgress(m_processed_streams * 100 / getInputCount("in"));
         }
     }
 }
@@ -115,6 +128,11 @@ bool CTcpStreamFeaturesNode::createFeaturesTable()
         // Set the table headers at the same time.
         m_table->addHeader("Date");
         m_table->addHeader("Time");
+
+        // Total Packets
+        if(getConfig().getParameter("packet_count")->value.toBool()) {
+            m_table->addHeader(QString("Packets"));
+        }
 
         // DEST IP
         if(getConfig().getParameter("split_dest_ip")->value.toBool()) {
@@ -196,6 +214,12 @@ void CTcpStreamFeaturesNode::extractFeatures(const CTcpStream &tcp_stream)
     row << split_time.at(0);
     row << split_time.at(1);
 
+    // The number of packets in the stream
+    bool packet_count = getConfig().getParameter("packet_count")->value.toBool();
+    if(packet_count) {
+        row << tcp_stream.total_packets;
+    }
+
     // Destination Address
     QVariant split_dest = getConfig().getParameter("split_dest_ip")->value;
     if(split_dest.toBool()) {
@@ -250,10 +274,10 @@ void CTcpStreamFeaturesNode::extractFeatures(const CTcpStream &tcp_stream)
     row << buildFlagsString(tcp_stream.flags_last);
 
     // The size of the data.
-    row << tcp_stream.data_size;
+    row << tcp_stream.data_length;
 
     // The words to extract from the data stream.
-    QStringList string_list = extractStrings(tcp_stream.data);
+    QStringList string_list = extractStrings(tcp_stream.payload);
     for(int i = 0; i < string_list.size(); ++i) {
         row << string_list.at(i);
     }

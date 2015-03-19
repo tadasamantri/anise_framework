@@ -8,6 +8,13 @@
 #include <QPair>
 #include <QThreadPool>
 
+
+//------------------------------------------------------------------------------
+// Static variables.
+bool CNode::log_progress = false;
+bool CNode::log_progress_verbose = true;
+
+
 //------------------------------------------------------------------------------
 // Constructor and Destructor
 
@@ -126,6 +133,12 @@ bool CNode::isProcessing() const
     return m_processing;
 }
 
+void CNode::enableProgressReporting(bool enable, bool verbose)
+{
+    log_progress = enable;
+    log_progress_verbose = verbose;
+}
+
 
 //------------------------------------------------------------------------------
 // Protected Functions
@@ -191,6 +204,28 @@ qint32 CNode::getInputCount(QString gate_name)
     }
     else {
         return 0;
+    }
+}
+
+void CNode::setProgress(qint8 percentage)
+{
+    if(!log_progress) {
+        return;
+    }
+
+    if(log_progress_verbose) {
+     qDebug().nospace() << "Node progress: "
+                        << getConfig().getName() << " - "
+                        << percentage << '%';
+    }
+    else {
+    // Print progress messages in machine and human printing mode
+    // ... (by adding an '@' to the beginning of the message).
+    qDebug() << '@'
+             << "{\"status\":" << "{\"node\":"
+             << getConfig().getName() << ", "
+             << "\"progress\":" << percentage
+             << "}";
     }
 }
 
