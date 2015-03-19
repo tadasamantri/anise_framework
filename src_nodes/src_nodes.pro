@@ -8,3 +8,4 @@ SUBDIRS += \
             tablefiledumpnode \
             leradnode \
             ruleevalnode \
+            pythonnode \
