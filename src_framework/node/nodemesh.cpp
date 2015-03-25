@@ -1,6 +1,8 @@
 #include "nodemesh.h"
 #include "nodefactory.h"
 #include "nodestarttask.h"
+#include "../settings.h"
+#include "../progressinfo.h"
 #include "../../src_common/qt-json/json.h"
 #include "../data/datafactory.h"
 #include "../data/messagedata.h"
@@ -86,12 +88,13 @@ void CNodeMesh::startSimulation()
         static_cast<CMessageData *>(CDataFactory::instance().createData("message"));
     if(msg == nullptr) {
         qCritical() << "Could not create start message.";
+        emit simulationFinished();
         return;
     }
     msg->setMessage("start");
     QSharedPointer<CData> pmsg = QSharedPointer<CData>(msg);
 
-    // Look for nodes without input gates and send them pmsg.
+    // Look for nodes without input gates and send them the start message.
     QMap<QString, QSharedPointer<CNode>>::iterator i;
     for(i = m_nodes.begin(); i != m_nodes.end(); ++i) {
         auto node = i.value();
@@ -283,7 +286,9 @@ void CNodeMesh::onNodeStarted(bool success)
         m_start_success = false;
     }
 
+    // Have we finished starting all nodes?
     if(m_nodes_waiting == 0) {
+        // Emit a signal that will inform that we are finished initializing all nodes.
         emit nodesStarted(m_start_success);
     }
 }

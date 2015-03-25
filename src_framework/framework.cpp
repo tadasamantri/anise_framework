@@ -1,5 +1,7 @@
 #include "framework.h"
 #include "messagehandler.h"
+#include "settings.h"
+#include "progressinfo.h"
 #include "node/nodefactory.h"
 #include "data/datafactory.h"
 #include "node/nodeconfig.h"
@@ -64,7 +66,8 @@ void CFramework::main()
     parser.addOption(nodes_option);
     // The --progress option
     QCommandLineOption progress_option("progress",
-                                       "Show the progress of the nodes.");
+                                       "Show additional progress information besides the default"
+                                       " status messages.");
     parser.addOption(progress_option);
 
     parser.process(*QCoreApplication::instance());
@@ -72,6 +75,7 @@ void CFramework::main()
 
     // Are we printing to the console for the humans or for the machines?
     if(!parser.isSet(machine_option)) {
+        CSettings::set("machine", false);
         // Enable pretty printing with out own custom message writer.
         // QT4:
         // qInstallMsgHandler(customMessageWriterQt4);
@@ -79,6 +83,7 @@ void CFramework::main()
         qInstallMessageHandler(humanMessageWriterQt5);
     }
     else {
+        CSettings::set("machine", true);
         qInstallMessageHandler(machineMessageWriterQt5);
     }
 
@@ -91,13 +96,12 @@ void CFramework::main()
     // Evaluate the parameters
     if(parser.isSet(nodes_option)) {
         // Only print the nodes and exit.
-        printNodes(!parser.isSet(machine_option));
+        printNodes();
         QCoreApplication::exit(0);
         return;
     }
-    if(parser.isSet(progress_option)) {
-        CNode::enableProgressReporting(true, !parser.isSet(machine_option));
-    }
+
+    CSettings::set("progress", parser.isSet(progress_option));
 
     // Evaluate the Arguments
     const QStringList args = parser.positionalArguments();
@@ -124,13 +128,20 @@ void CFramework::main()
 
 void CFramework::simulateMesh()
 {
-    qDebug() << "Starting the simulation" << endl
-             << "-----------------------";
+    CProgressInfo progress;
+    progress.setSrc(CProgressInfo::ESource::framework);
+    progress.setState(CProgressInfo::EState::processing);
+    progress.setMsg(CProgressInfo::EMsg::start);
+    progress.printProgress();
+    qDebug() << "-----------------------";
     m_mesh.startSimulation();
 }
 
-void CFramework::printNodes(bool pretty_print)
+void CFramework::printNodes()
 {
+    // Get the setting that will tell us if we pretty print or not.
+    bool pretty_print = !CSettings::get("machine").toBool();
+
     QJsonArray json_nodes;
     QStringList node_classes = CNodeFactory::instance().availableNodes();
 
@@ -192,52 +203,80 @@ void CFramework::printNodes(bool pretty_print)
     QJsonDocument json_doc(json_container);
 
     if(pretty_print) {
-        qDebug() << "Available Nodes: "
+        qDebug().nospace().noquote()
+                << "Available Nodes: "
                  << endl << json_doc.toJson(QJsonDocument::Indented);
     }
     else {
         // Info messages disabled normally. Force printing by stating with '@'.
-        qDebug() << "@" << json_doc.toJson(QJsonDocument::Compact);
+        qDebug().nospace().noquote()
+                << '@'
+                << json_doc.toJson(QJsonDocument::Compact);
     }
 }
 
 void CFramework::onMeshInit(bool success)
 {
+    CProgressInfo progress;
+    progress.setSrc(CProgressInfo::ESource::framework);
+    progress.setState(CProgressInfo::EState::init);
+
     if(!success) {
-        qCritical() << "Simulation not started as "
-                    << "not all nodes started correctly.";
+        progress.setMsg(CProgressInfo::EMsg::error);
+        progress.setInfo("Simulation not started.");
+        progress.printProgress();
         QCoreApplication::exit(1);
     }
     else {
         // Start the simulation.
+        progress.setMsg(CProgressInfo::EMsg::stop);
+        progress.printProgress();
         simulateMesh();
     }
 }
 
 void CFramework::onMeshFinish()
 {
-    qDebug() << "Simulation finished" << endl
-             << "-----------------------";
+    CProgressInfo progress;
+    progress.setSrc(CProgressInfo::ESource::framework);
+    progress.setState(CProgressInfo::EState::processing);
+    progress.setMsg(CProgressInfo::EMsg::stop);
+
+    qDebug() << "-----------------------";
+    progress.printProgress();
+
+    // Exit the application with no errors.
     QCoreApplication::exit(0);
 }
 
 void CFramework::initMesh(QString mesh)
 {
+    CProgressInfo progress;
+    progress.setSrc(CProgressInfo::ESource::framework);
+    progress.setState(CProgressInfo::EState::init);
+
     QFile file(mesh);
     if(!file.open(QFile::ReadOnly | QFile::Text)) {
-        qCritical() << "The mesh" << mesh << "could not be opened.";
+        // Report an error and exit.
+        progress.setMsg(CProgressInfo::EMsg::error);
+        progress.setInfo(QString("The mesh '%1' could not be opened.").arg(mesh));
+        progress.printProgress();
         QCoreApplication::exit(1);
         return;
     }
     QTextStream stream(&file);
 
     if(m_mesh.parseMesh(stream.readAll())) {
-        // Start the nodes in the mesh if we succeeded parcing
+        // Start the nodes in the mesh if we succeeded parsing
         // ... the mesh.
+        progress.setMsg(CProgressInfo::EMsg::start);
+        progress.printProgress();
         m_mesh.startNodes();
     }
     else {
-        qWarning() << "No simulation was started.";
+        progress.setMsg(CProgressInfo::EMsg::warning);
+        progress.setInfo("No simulation was started.");
+        progress.printProgress();
         QCoreApplication::exit(1);
         return;
     }

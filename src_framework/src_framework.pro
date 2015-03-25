@@ -60,7 +60,9 @@ SOURCES += main.cpp \
     node/nodegatetask.cpp \
     node/nodestarttask.cpp \
     data/messagedata.cpp \
-    messagehandler.cpp
+    messagehandler.cpp \
+    progressinfo.cpp \
+    settings.cpp
 
 HEADERS += \
     framework.h \
@@ -77,4 +79,6 @@ HEADERS += \
     node/nodegatetask.h \
     node/nodestarttask.h \
     data/messagedata.h \
-    messagehandler.h
+    messagehandler.h \
+    progressinfo.h \
+    settings.h

@@ -27,7 +27,7 @@ class CFramework : public QObject
 
     // Functions called through the command line parameters.
     // List all the Nodes that have been loaded.
-    void printNodes(bool pretty_print);
+    void printNodes();
 
   private slots:
     // The mesh has finished initializing all nodes.

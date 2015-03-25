@@ -3,7 +3,6 @@
 # Find the executable
 ANISE_DIR=$(readlink -f $0)
 SCRIPT_PATH=${ANISE_DIR%/*}
-echo $SCRIPT_PATH
 
 # Adjust the library path
 if [ -n "$LD_LIBRARY_PATH" ]; then

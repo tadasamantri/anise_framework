@@ -2,17 +2,13 @@
 #include "../data/datafactory.h"
 #include "data/errordata.h"
 #include "nodegatetask.h"
+#include "../settings.h"
+#include "../progressinfo.h"
 #include <QDebug>
 #include <QCoreApplication>
 #include <QMutex>
 #include <QPair>
 #include <QThreadPool>
-
-
-//------------------------------------------------------------------------------
-// Static variables.
-bool CNode::log_progress = false;
-bool CNode::log_progress_verbose = true;
 
 
 //------------------------------------------------------------------------------
@@ -35,8 +31,7 @@ CNode::CNode(const CNodeConfig &config, QObject *parent/*= 0*/)
 
 CNode::~CNode()
 {
-    qDebug() << getConfig().getName()
-             << "destroyed.";
+
 }
 
 
@@ -133,12 +128,6 @@ bool CNode::isProcessing() const
     return m_processing;
 }
 
-void CNode::enableProgressReporting(bool enable, bool verbose)
-{
-    log_progress = enable;
-    log_progress_verbose = verbose;
-}
-
 
 //------------------------------------------------------------------------------
 // Protected Functions
@@ -209,23 +198,15 @@ qint32 CNode::getInputCount(QString gate_name)
 
 void CNode::setProgress(qint8 percentage)
 {
-    if(!log_progress) {
-        return;
-    }
+    if(CSettings::progress()) {
+        CProgressInfo progress;
+        progress.setSrc(CProgressInfo::ESource::node);
+        progress.setState(CProgressInfo::EState::processing);
+        progress.setMsg(CProgressInfo::EMsg::percentage);
+        progress.setInfo(static_cast<qint32>(percentage));
+        progress.setName(getConfig().getName());
 
-    if(log_progress_verbose) {
-     qDebug().nospace() << "Node progress: "
-                        << getConfig().getName() << " - "
-                        << percentage << '%';
-    }
-    else {
-    // Print progress messages in machine and human printing mode
-    // ... (by adding an '@' to the beginning of the message).
-    qDebug() << '@'
-             << "{\"status\":" << "{\"node\":"
-             << getConfig().getName() << ", "
-             << "\"progress\":" << percentage
-             << "}}";
+        progress.printProgress();
     }
 }
 

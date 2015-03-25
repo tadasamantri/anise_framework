@@ -49,8 +49,6 @@ class CNode : public QObject
     void processData(QString gate_name, const CConstDataPointer &data);
     // Is the node currently processing data?
     bool isProcessing() const;
-    // Enable or disable progress reporting.
-    static void enableProgressReporting(bool enable, bool verbose);
 
   protected:
     // ***************************************************
@@ -98,10 +96,6 @@ class CNode : public QObject
     // Allow to commit data only inside the "data()" function of the
     // ... node.
     bool m_allow_commit;
-    // Will the nodes print their progress or not?
-    static bool log_progress;
-    // Will the progress be verbose.
-    static bool log_progress_verbose;
 
     // Do not allow instantiations of this class through the default
     // ... constructor.
