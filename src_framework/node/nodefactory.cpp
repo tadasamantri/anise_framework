@@ -104,8 +104,6 @@ void CNodeFactory::addLibrary(void *library_handle, QString filename)
         return;
     }
 
-    qDebug() << "Loaded Node:" << name;
-
     // Make sure a node with a similar name has not already been loaded.
     if(m_makers.contains(name)) {
         qWarning() << "The Node Factory already loaded a node called '"

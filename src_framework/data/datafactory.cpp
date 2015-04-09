@@ -70,8 +70,6 @@ void CDataFactory::addLibrary(void *library_handle, QString filename)
         return;
     }
 
-    qDebug() << "Loaded Data Structure:" << name;
-
     // Make sure a node with a similar name has not already been loaded.
     if(m_makers.contains(name)) {
         qWarning() << "The Data Factory already loaded a structure called '"

@@ -91,6 +91,7 @@ void CFramework::main()
         qInstallMessageHandler(machineMessageWriterQt5);
     }
 
+    CSettings::set("progress", parser.isSet(progress_option));
     CSettings::set("dbg_function", parser.isSet(dbg_function_option));
 
     // Load dynamic nodes and messages into their corresponsing factories.
@@ -98,15 +99,12 @@ void CFramework::main()
     CDataFactory::instance().loadLibraries();
     CNodeFactory::instance().loadLibraries();
 
-    // Evaluate the parameters
     if(parser.isSet(nodes_option)) {
         // Only print the nodes and exit.
         printNodes();
         QCoreApplication::exit(0);
         return;
     }
-
-    CSettings::set("progress", parser.isSet(progress_option));
 
     // Evaluate the Arguments
     const QStringList args = parser.positionalArguments();
