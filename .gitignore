@@ -5,5 +5,14 @@ Makefile
 build/
 bin/
 
+# Third party libraries used to build some other modules
+3rdparty/
+
+# Misc stufff we don't want in the repo
+misc/
+meshes/
+
 # Do not upload user files.
 anids-framework.pro.user*
+
+TAGS
