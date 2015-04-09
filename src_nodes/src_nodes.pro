@@ -9,3 +9,4 @@ SUBDIRS += \
             leradnode \
             ruleevalnode \
             pythonnode \
+            mawilabelsnode \
