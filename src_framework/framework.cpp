@@ -69,6 +69,10 @@ void CFramework::main()
                                        "Show additional progress information besides the default"
                                        " status messages.");
     parser.addOption(progress_option);
+    // The --dbg_function option
+    QCommandLineOption dbg_function_option("dbg_function",
+        "Show the function that printed a message into the console.");
+    parser.addOption(dbg_function_option);
 
     parser.process(*QCoreApplication::instance());
 
@@ -87,6 +91,7 @@ void CFramework::main()
         qInstallMessageHandler(machineMessageWriterQt5);
     }
 
+    CSettings::set("dbg_function", parser.isSet(dbg_function_option));
 
     // Load dynamic nodes and messages into their corresponsing factories.
     // ... The data nodes should be loaded first as the nodes use them.

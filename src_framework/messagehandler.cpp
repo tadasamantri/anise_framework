@@ -1,14 +1,10 @@
 #include "messagehandler.h"
+#include "settings.h"
 #include <iostream>
 #include <QTextStream>
 #include <QTime>
 
-#define COLOR_DEBUG "\033[32;1m"
-#define COLOR_WARN "\033[33;1m"
-#define COLOR_CRITICAL "\033[31;1m"
-#define COLOR_FATAL "\033[33;1m"
 #define COLOR_RESET "\033[0m"
-
 #define GREEN "\033[1;32m"
 #define BLUE "\033[1;34m"
 #define YELLOW "\033[1;33m"
@@ -49,11 +45,21 @@ void humanMessageWriterQt5(QtMsgType type, const QMessageLogContext &context, co
     QTextStream out(stdout);
     QTextStream err(stderr);
 
+    QString function_src;
+    if(CSettings::get("dbg_function").toBool()) {
+        function_src = QString("%1:%2 ").
+                arg(context.function).
+                arg(context.line);
+    }
+    else {
+        function_src = QString("");
+    }
+
     switch (type) {
         case QtDebugMsg:
             out << QTime::currentTime().toString("hh:mm:ss.zzz")
                 << BLUE   << "     Info: " << GREEN
-                << context.function << ":" << context.line << " " << COLOR_RESET;
+                << function_src << " " << COLOR_RESET;
             // Remove the '@' in messages that start with it.
             if(msg.at(0) == '@') {
                 out << msg.mid(1) << endl;
@@ -65,19 +71,19 @@ void humanMessageWriterQt5(QtMsgType type, const QMessageLogContext &context, co
         case QtWarningMsg:
             err << QTime::currentTime().toString("hh:mm:ss.zzz")
                 << YELLOW << "  Warning: " << GREEN
-                << context.function << ":" << context.line << " " << COLOR_RESET
+                << function_src << " " << COLOR_RESET
                 << msg << endl;
             break;
         case QtCriticalMsg:
             err << QTime::currentTime().toString("hh:mm:ss.zzz")
                 << RED    << " Critical: " << GREEN
-                << context.function << ":" << context.line << " " << COLOR_RESET
+                << function_src << " " << COLOR_RESET
                 << msg << endl;
             break;
         case QtFatalMsg:
             err << QTime::currentTime().toString("hh:mm:ss.zzz")
                 << RED    << "    FATAL: " << GREEN
-                << context.function << ":" << context.line << " " << COLOR_RESET
+                << function_src << " " << COLOR_RESET
                 << msg << endl;
             abort();
             break;

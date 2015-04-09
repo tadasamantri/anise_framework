@@ -35,6 +35,8 @@ CONFIG(debug,debug|release) {
   RCC_DIR = build/release/rcc
   #DEFINES += QT_NO_DEBUG_OUTPUT
   #QMAKE_CXXFLAGS_RELEASE += -O2
+  # Include the context of the messages in release and debug
+  DEFINES += QT_MESSAGELOGCONTEXT
 }
 
 # Install the script that sets the correct library path.
