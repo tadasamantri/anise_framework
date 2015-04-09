@@ -45,19 +45,20 @@ class CTcpKey
 class CTcpStreamsData: public CData
 {
   private:
-    QMap<CTcpKey, CTcpStream> m_tcp_open_streams;
-    QList<CTcpStream> m_tcp_closed_streams;
+    QMap<CTcpKey, CTcpStream*> m_tcp_open_streams;
+    QList<CTcpStream*> m_tcp_closed_streams;
     quint32 m_max_payload_size;
 
   public:
     explicit CTcpStreamsData();
+    virtual ~CTcpStreamsData();
     virtual CDataPointer clone() const;
     void setMaxPayloadSize(quint32 size) { m_max_payload_size = size; }
 
     // Add a TCP packet to a new or existing TCPStream.
     void addTcpPacket(const QSharedPointer<const CTcpDumpPacket> &tcp_packet);
-    inline const QMap<CTcpKey, CTcpStream> &getOpenStreams() const;
-    inline const QList<CTcpStream> &getClosedStreams() const;
+    inline QList<CTcpStream*> getOpenStreams() const;
+    inline QList<CTcpStream*> getClosedStreams() const;
     // The open streams available.
     qint32 openStreamsCount() const { return m_tcp_open_streams.size(); }
     // The closed streams available.
@@ -66,15 +67,18 @@ class CTcpStreamsData: public CData
     qint32 totalStreamsCount() const {return openStreamsCount() + closedStreamsCount(); }
 };
 
+Q_DECLARE_METATYPE(CTcpStreamsData*)
+Q_DECLARE_METATYPE(const CTcpStreamsData*)
+
 
 // Inline functions
 
-const QMap<CTcpKey, CTcpStream> &CTcpStreamsData::getOpenStreams() const
+QList<CTcpStream*> CTcpStreamsData::getOpenStreams() const
 {
-    return m_tcp_open_streams;
+    return m_tcp_open_streams.values();
 }
 
-const QList<CTcpStream> &CTcpStreamsData::getClosedStreams() const
+QList<CTcpStream*> CTcpStreamsData::getClosedStreams() const
 {
     return m_tcp_closed_streams;
 }

@@ -31,11 +31,6 @@ class CTcpStream
                   flags_first(0), flags_before_last(0), flags_last(0),
                   total_packets(0) {}
 
-    bool isNull() const
-    {
-        return start_time == 0 ? true : false;
-    }
-
     void init(const QSharedPointer<const CTcpDumpPacket> &tcp_packet)
     {
         source_addr = tcp_packet->src();
@@ -74,5 +69,8 @@ class CTcpStream
         qCopy(begin, end, result);
     }
 };
+
+Q_DECLARE_METATYPE(CTcpStream*)
+Q_DECLARE_METATYPE(const CTcpStream*)
 
 #endif // TCPSTREAM_H

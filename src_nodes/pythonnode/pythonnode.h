@@ -3,6 +3,7 @@
 
 #include "node/node.h"
 #include "node/nodeconfig.h"
+#include "datawrapfactory.h"
 #include <QObject>
 #include <QString>
 
@@ -24,6 +25,15 @@ class CPythonNode: public CNode
     virtual bool start();
     // Receive data sent by other nodes connected to this node.
     virtual void data(QString gate_name, const CConstDataPointer &data);
+
+  private:
+    // Has the PythonQt library been initialized?
+    static bool python_init;
+    // The factory wrapper class that translates data structures to python objects.
+    static CDataWrapFactory data_wrap_factory;
+
+    // Init the PythonQt library and make some CPP classes available in Python.
+    static void initPython();
 };
 
 #endif // PYTHONNODE_H

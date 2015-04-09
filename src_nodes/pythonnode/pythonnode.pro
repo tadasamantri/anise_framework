@@ -10,9 +10,9 @@ INCLUDEPATH += ../../src_framework \
                ../../src_data \
                extras/pythonqt/include
 
-# Include the PythonQt libraries
-LIBS += -L./extras/pythonqt/ -lPythonQt
-# Include the Python3 bindings
+# Include the PythonQt libraries.
+LIBS += -L./extras/pythonqt/
+# Include the Python3 bindings using 'pkg-conf'.
 CONFIG += link_pkgconfig
 PKGCONFIG += python3
 
@@ -22,6 +22,12 @@ CONFIG(debug,debug|release) {
   OBJECTS_DIR = build/debug
   MOC_DIR = build/debug/moc
   RCC_DIR = build/debug/rcc
+  # PythonQt libraries
+  LIBS +=  -lPythonQt_d
+  # Copy the PythonQt library.
+  pythonqt.path = $$DESTDIR/extras
+  pythonqt.files = extras/pythonqt/libPythonQt_d.so.1
+  INSTALLS += pythonqt
 } else {
   # Release...
   DESTDIR = ../../bin/release/nodes
@@ -29,20 +35,31 @@ CONFIG(debug,debug|release) {
   MOC_DIR = build/release/moc
   RCC_DIR = build/release/rcc
   #DEFINES += QT_NO_DEBUG_OUTPUT
+  # PythonQt libraries
+  LIBS +=  -lPythonQt
+  # Copy the PythonQt library.
+  pythonqt.path = $$DESTDIR/extras
+  pythonqt.files = extras/pythonqt/libPythonQt.so.1
+  INSTALLS += pythonqt
 }
 
-# Copy the PythonQt library.
-pythonqt.path = $$DESTDIR/extras
-pythonqt.files = extras/pythonqt/libPythonQt.so.1
-
-INSTALLS += pythonqt
 
 QMAKE_CLEAN += $$DESTDIR/*$$TARGET*
 
 HEADERS += \
     pythonnode.h \
-    interface.h
+    interface.h \
+    tabledatadecor.h \
+    datawrapfactory.h \
+    tabledatawrap.h \
+    flowsdatawrap.h \
+    flowwrap.h
 
 SOURCES += \
     pythonnode.cpp \
-    interface.cpp
+    interface.cpp \
+    tabledatadecor.cpp \
+    datawrapfactory.cpp \
+    tabledatawrap.cpp \
+    flowsdatawrap.cpp \
+    flowwrap.cpp
