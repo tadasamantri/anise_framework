@@ -102,7 +102,7 @@ void CLeradNode::lerad(const QSharedPointer<const CTableData> &table)
     qint32 something_nominal = m_ruleset->string2nominal("?");
 
     // Number of attributes
-    qint32 attribute_count = table->getColCount();
+    qint32 attribute_count = table->colCount();
     if(attribute_count < 2) {
         qWarning() << "LERAD needs at least 2 attributes to create rules.";
         return;
@@ -112,7 +112,7 @@ void CLeradNode::lerad(const QSharedPointer<const CTableData> &table)
     // 2- Read tuples from the table to build a dataset.
     QList<QList<Nominal>> dataset;
 
-    qint32 rows = table->getRowCount();
+    qint32 rows = table->rowCount();
     for(qint32 j = 0; j < rows; ++j) {
         // Get the row.
         const QList<QVariant> &row = table->getRow(j);
@@ -325,7 +325,7 @@ void CLeradNode::lerad(const QSharedPointer<const CTableData> &table)
     bool dump_rules = getConfig().getParameter("dump_rules")->value.toBool();
     if(dump_rules) {
         QString filename = getConfig().getParameter("rules_file")->value.toString();
-        dumpRules(table->getHeader(), filename);
+        dumpRules(table->header(), filename);
     }
 
     // 8- Print coverage

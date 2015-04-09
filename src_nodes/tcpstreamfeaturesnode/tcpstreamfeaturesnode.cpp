@@ -84,18 +84,20 @@ void CTcpStreamFeaturesNode::data(QString gate_name, const CConstDataPointer &da
         }
 
         // Optimize the row allocation space for the table.
-        m_table->reserveRows(m_table->getRowCount() +
+        m_table->reserveRows(m_table->rowCount() +
                              tcp_streams->totalStreamsCount());
 
         // Process the closed streams.
         auto closed_streams_it = tcp_streams->getClosedStreams().constBegin();
         for(; closed_streams_it != tcp_streams->getClosedStreams().constEnd(); ++closed_streams_it) {
-            extractFeatures(*closed_streams_it);
+            const CTcpStream* stream = *closed_streams_it;
+            extractFeatures(*stream);
         }
         // Process the open streams.
         auto open_streams_it = tcp_streams->getOpenStreams().constBegin();
         for(; open_streams_it != tcp_streams->getOpenStreams().constEnd(); ++open_streams_it) {
-            extractFeatures(*open_streams_it);
+            const CTcpStream* stream = *open_streams_it;
+            extractFeatures(*stream);
         }
 
         ++m_processed_streams;
@@ -123,8 +125,6 @@ bool CTcpStreamFeaturesNode::createFeaturesTable()
                 static_cast<CTableData *>(createData("table")));
 
     if(!m_table.isNull()) {
-        // Optimize the column allocation space for the table.
-        qint32 cols = 9;
         // Set the table headers at the same time.
         m_table->addHeader("Date");
         m_table->addHeader("Time");
@@ -141,11 +141,9 @@ bool CTcpStreamFeaturesNode::createFeaturesTable()
             for(qint32 i = length - 1; i >= 0; --i) {
                 m_table->addHeader(QString("DA%1").arg(i));
             }
-            cols += length;
         }
         else {
             m_table->addHeader("DA");
-            ++cols;
         }
 
         // Destination Port
@@ -158,11 +156,9 @@ bool CTcpStreamFeaturesNode::createFeaturesTable()
             for(qint32 i = length - 1; i >= 0; --i) {
                 m_table->addHeader(QString("SA%1").arg(i));
             }
-            cols += length;
         }
         else {
             m_table->addHeader("SA");
-            ++cols;
         }
 
         // Source Port
@@ -184,9 +180,6 @@ bool CTcpStreamFeaturesNode::createFeaturesTable()
         for(qint32 i = 1; i <= words; ++i) {
             m_table->addHeader(QString("W%1").arg(i));
         }
-        cols += words;
-
-        m_table->setCols(cols);
 
         return true;
     }

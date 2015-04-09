@@ -10,28 +10,32 @@ class CTableData: public CData
 {
 
   private:
+    // Storage of the actual 'table data'.
     QList<QList<QVariant>> m_table;
-    // Size hints to improve memory allocation efficiency.
-    qint32 m_columns;
     // String representations of the table columns.
     QList<QString> m_header;
 
   public:
     explicit CTableData();
+    CTableData(const CTableData& data);
 
     void reserveRows(qint32 size) { m_table.reserve(size); }
-    void setCols(qint32 cols) { m_columns = cols; }
-    qint32 getRowCount() const { return m_table.size(); }
-    qint32 getColCount() const;
+    qint32 rowCount() const { return m_table.size(); }
+    qint32 colCount() const;
     void addHeader(QString attr);
     void addHeader(const QList<QString> &attrs);
-    const QList<QString> &getHeader() const;
+    const QList<QString> &header() const;
     qint32 headerSize() const;
     QList<QVariant> &newRow();
     const QList<QVariant> &getRow(int irow) const;
     virtual CDataPointer clone() const;
+    const QList<QList<QVariant>> &table() const;
 
     void sort(qint32 field1, qint32 field2);
 };
+
+Q_DECLARE_METATYPE(CTableData*)
+Q_DECLARE_METATYPE(const CTableData*)
+
 
 #endif // TABLEDATA_H

@@ -7,12 +7,17 @@
 
 CTableData::CTableData()
     : CData()
-    , m_columns(1)
 {
 
 }
 
-qint32 CTableData::getColCount() const
+CTableData::CTableData(const CTableData &data)
+{
+    Q_UNUSED(data);
+    qDebug() << "CTableData copy Constructor called.";
+}
+
+qint32 CTableData::colCount() const
 {
     if(m_table.size() > 0) {
         return m_table[0].size();
@@ -33,7 +38,7 @@ void CTableData::addHeader(const QList<QString> &attrs)
     }
 }
 
-const QList<QString> &CTableData::getHeader() const
+const QList<QString> &CTableData::header() const
 {
     return m_header;
 }
@@ -49,7 +54,7 @@ qint32 CTableData::headerSize() const
 QList<QVariant> &CTableData::newRow()
 {
     m_table.append(QList<QVariant>());
-    m_table.last().reserve(m_columns);
+    m_table.last().reserve(headerSize());
 
     return m_table.last();
 }
@@ -64,6 +69,11 @@ CDataPointer CTableData::clone() const
     qCritical() << "Cloning not implemented.";
 
     return CDataPointer();
+}
+
+const QList<QList<QVariant>> &CTableData::table() const
+{
+    return m_table;
 }
 
 void CTableData::sort(qint32 field1, qint32 field2)

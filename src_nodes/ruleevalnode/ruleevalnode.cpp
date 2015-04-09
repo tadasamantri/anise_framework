@@ -70,7 +70,7 @@ void CRuleEvalNode::data(QString gate_name, const CConstDataPointer &data)
     else if(data->getType() == "table") {
         m_table_data = data.staticCast<const CTableData>();
         // Setup the anomalies table header by copying the header of the test table.
-        m_anomalies_data->addHeader(m_table_data->getHeader());
+        m_anomalies_data->addHeader(m_table_data->header());
         // Add our own header fields.
         m_anomalies_data->addHeader("Anomaly_Score");
         m_anomalies_data->addHeader("Most_Anomalous_Rule");
@@ -114,7 +114,7 @@ void CRuleEvalNode::evaluate()
     // ... that have already been analysed previously.
     qint32 now = m_ruleset_data->tuplesCount();
 
-    qint32 rows = m_table_data->getRowCount();
+    qint32 rows = m_table_data->rowCount();
     for(qint32 i = 0; i < rows; ++i) {
         const QList<QVariant> &row = m_table_data->getRow(i);
 

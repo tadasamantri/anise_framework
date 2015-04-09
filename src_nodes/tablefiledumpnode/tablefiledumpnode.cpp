@@ -95,14 +95,14 @@ bool CTableFileDumpNode::printTable(QSharedPointer<const CTableData> &table,
     out << table->headerSize() << endl;
 
     // Print table header.
-    const QList<QString> &header = table->getHeader();
+    const QList<QString> &header = table->header();
     for(const QString& attr : header) {
         out << attr << ' ';
     }
     out << endl;
 
     // Print each row into the file.
-    qint32 row_count = table->getRowCount();
+    qint32 row_count = table->rowCount();
     qint32 col_count = 0;
 
     for(qint32 i = 0; i < row_count; ++i) {
@@ -111,7 +111,7 @@ bool CTableFileDumpNode::printTable(QSharedPointer<const CTableData> &table,
         for(qint32 j = 0; j < col_count; ++j) {
             out << row.at(j).toString();
             if(j != col_count - 1) {
-                out << " ";
+                out << "\t";
             }
         }
         out << endl;
