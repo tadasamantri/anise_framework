@@ -10,3 +10,4 @@ SUBDIRS += \
             ruleevalnode \
             pythonnode \
             mawilabelsnode \
+            mawiextractornode \
