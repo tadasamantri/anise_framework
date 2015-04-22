@@ -3,13 +3,13 @@
 #include "tabledata/tabledata.h"
 #include "data/messagedata.h"
 #include <QDebug>
+#include <QFile>
 
 //------------------------------------------------------------------------------
 // Constructor and Destructor
 
 CFileNode::CFileNode(const CNodeConfig &config, QObject *parent/* = 0*/)
     : CNode(config, parent)
-    , m_data_file()
 {
 
 }
@@ -36,23 +36,18 @@ void CFileNode::configure(CNodeConfig &config)
 bool CFileNode::start()
 {
     QVariant filename = getConfig().getParameter("file")->value;
-    QVariant binary = getConfig().getParameter("binary")->value;
 
-    m_data_file = QSharedPointer<CFileData>(
-        static_cast<CFileData *>(createData("file")));
-
-    if(m_data_file->readFile(filename.toString(), binary.toBool())) {
-        return true;
-    }
-    else {
-        qWarning() << "The file"
-                 << filename.toString()
-                 << "could not be opened.";
+    // Check if the user supplied file exists before we start processing.
+    QFile file(filename.toString());
+    if(!file.exists()) {
+        qCritical() << "File" << filename.toString() << "does not exist.";
         return false;
     }
+
+    return true;
 }
 
-void CFileNode::data(QString gate_name, const CConstDataPointer &data)
+bool CFileNode::data(QString gate_name, const CConstDataPointer &data)
 {
     // No input gates.
     Q_UNUSED(gate_name);
@@ -61,13 +56,26 @@ void CFileNode::data(QString gate_name, const CConstDataPointer &data)
         auto pmsg = data.staticCast<const CMessageData>();
         QString msg = pmsg->getMessage();
         if(msg == "start") {
-            commit("out", m_data_file);
-            // We can now clear the file data so that the file is freed
-            // ... when it is no longer being used by any node.
-            m_data_file.clear();
-        }
-        else if(msg == "error") {
-            qCritical() << "Error found while processing data.";
+
+            // Create and read the file.
+            QSharedPointer<CFileData> file_data =
+                    QSharedPointer<CFileData>(
+                        static_cast<CFileData *>(createData("file")));
+
+            QVariant filename = getConfig().getParameter("file")->value;
+            QVariant binary = getConfig().getParameter("binary")->value;
+
+            if(!file_data.isNull() &&
+                    file_data->readFile(filename.toString(),
+                                        binary.toBool())) {
+                commit("out", file_data);
+            }
+            else {
+                commitError("out", "Could not read file.");
+            }
+            return true;
         }
     }
+
+    return false;
 }

@@ -10,7 +10,6 @@
 
 CTcpDumpNode::CTcpDumpNode(const CNodeConfig &config, QObject *parent/* = 0*/)
     : CNode(config, parent)
-    , m_tcpdump(nullptr)
 {
 
 }
@@ -34,38 +33,30 @@ void CTcpDumpNode::configure(CNodeConfig &config)
 
 bool CTcpDumpNode::start()
 {
-    m_tcpdump = QSharedPointer<CTcpDumpData>(
-        static_cast<CTcpDumpData *>(createData("tcpdump")));
-
-    if(!m_tcpdump.isNull()) {
-        return true;
-    }
-    else {
-        return false;
-    }
+    return true;
 }
 
-void CTcpDumpNode::data(QString gate_name, const CConstDataPointer &data)
+bool CTcpDumpNode::data(QString gate_name, const CConstDataPointer &data)
 {
     // No need to track gates.
     Q_UNUSED(gate_name);
 
-    if(data->getType() == "message") {
-        auto pmsg = data.staticCast<const CMessageData>();
-        QString msg = pmsg->getMessage();
-        qDebug() << "Received message:" << msg;
-        if(msg == "error") {
-            commitError("out", "Could not get tcp file data.");
-            return;
-        }
-    }
-    else if(data->getType() == "file") {
+    if(data->getType() == "file") {
         QSharedPointer<const CFileData> file = data.staticCast<const CFileData>();
+        QSharedPointer<CTcpDumpData> tcpdump = QSharedPointer<CTcpDumpData>(
+                    static_cast<CTcpDumpData *>(createData("tcpdump")));
 
-        m_tcpdump->parse(file->getBytes());
+        setProgress(0);
+        tcpdump->setNodeReporter(this);
+        tcpdump->parse(file->getBytes());
         qDebug() << "Packets parsed:"
-                 << m_tcpdump->availablePackets();
+                 << tcpdump->availablePackets();
+        tcpdump->unsetNodeReporter();
+        setProgress(100);
 
-        commit("out", m_tcpdump);
+        commit("out", tcpdump);
+        return true;
     }
+
+    return false;
 }

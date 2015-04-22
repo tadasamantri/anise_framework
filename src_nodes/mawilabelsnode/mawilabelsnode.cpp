@@ -42,20 +42,10 @@ bool CMawiLabelsNode::start()
     return true;
 }
 
-void CMawiLabelsNode::data(QString gate_name, const CConstDataPointer &data)
+bool CMawiLabelsNode::data(QString gate_name, const CConstDataPointer &data)
 {
     Q_UNUSED(gate_name);
 
-    // Process framework messages.
-    if(data->getType() == "message") {
-        auto pmsg = data.staticCast<const CMessageData>();
-        QString msg = pmsg->getMessage();
-        qDebug() << "Received message:" << msg;
-        if(msg == "error") {
-            commitError("out", "Could not get tcp file data.");
-            return;
-        }
-    }
     // Process input files.
     if(data->getType() == "file") {
         // The file to read.
@@ -70,7 +60,11 @@ void CMawiLabelsNode::data(QString gate_name, const CConstDataPointer &data)
         else {
             commitError("out", "MAWI labels could not be parsed correctly.");
         }
+
+        return true;
     }
+
+    return false;
 }
 
 QSharedPointer<CTableData> CMawiLabelsNode::createTable()

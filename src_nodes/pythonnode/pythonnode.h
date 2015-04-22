@@ -24,7 +24,7 @@ class CPythonNode: public CNode
     // Function called when the simulation is started.
     virtual bool start();
     // Receive data sent by other nodes connected to this node.
-    virtual void data(QString gate_name, const CConstDataPointer &data);
+    virtual bool data(QString gate_name, const CConstDataPointer &data);
 
   private:
     // Has the PythonQt library been initialized?

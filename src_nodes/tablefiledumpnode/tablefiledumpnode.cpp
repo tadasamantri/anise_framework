@@ -42,21 +42,11 @@ bool CTableFileDumpNode::start()
     return true;
 }
 
-void CTableFileDumpNode::data(QString gate_name, const CConstDataPointer &data)
+bool CTableFileDumpNode::data(QString gate_name, const CConstDataPointer &data)
 {
     Q_UNUSED(gate_name);
 
-    // Process framework messages.
-    if(data->getType() == "message") {
-        auto pmsg = data.staticCast<const CMessageData>();
-        QString msg = pmsg->getMessage();
-        qDebug() << "Received message:" << msg;
-        if(msg == "error") {
-            commitError("out", "Could not get tcp file data.");
-            return;
-        }
-    }
-    else if(data->getType() == "table") {
+    if(data->getType() == "table") {
         auto table = data.staticCast<const CTableData>();
 
         // Get the node properties for the file.
@@ -65,12 +55,16 @@ void CTableFileDumpNode::data(QString gate_name, const CConstDataPointer &data)
 
         // Print the table data into the user-supplied filename.
         if(printTable(table, filename, append)) {
-            qDebug() << "Table data written into" << filename;
+            qDebug() << getConfig().getName() << "dumped table in" << filename;
         }
         else {
-            qWarning() << "Table data was NOT able to be written into" << filename;
+            qWarning() << getConfig().getName() << "could NOT dump Table in" << filename;
         }
+
+        return true;
     }
+
+    return false;
 }
 
 bool CTableFileDumpNode::printTable(QSharedPointer<const CTableData> &table,
@@ -97,7 +91,7 @@ bool CTableFileDumpNode::printTable(QSharedPointer<const CTableData> &table,
     // Print table header.
     const QList<QString> &header = table->header();
     for(const QString& attr : header) {
-        out << attr << ' ';
+        out << attr << '\t';
     }
     out << endl;
 

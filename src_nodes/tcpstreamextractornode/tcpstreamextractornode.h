@@ -26,7 +26,7 @@ protected:
     // Function called when the simulation is started.
     virtual bool start();
     // Receive data sent by other nodes connected to this node.
-    virtual void data(QString gate_name, const CConstDataPointer &data);
+    virtual bool data(QString gate_name, const CConstDataPointer &data);
 };
 
 #endif // TCPSTREAMEXTRACTORNODE_H

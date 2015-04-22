@@ -3,6 +3,7 @@
 
 #include "tcpdumppacket.h"
 #include "data/data.h"
+#include "node/node.h"
 #include <QList>
 #include <QByteArray>
 #include <QSharedPointer>
@@ -15,11 +16,18 @@ class CTcpDumpData: public CData
     QByteArray m_magic_word;
     bool m_little_endian;
     QList<QSharedPointer<CTcpDumpPacket>> m_packets;
+    CNode *m_reporting_node;
 
   public:
     explicit CTcpDumpData();
     virtual ~CTcpDumpData();
     virtual CDataPointer clone() const { return CDataPointer(); }
+    // Set and unset the Node that will be used to report the progress of the
+    // ... parsing.
+    void setNodeReporter(CNode *node);
+    void unsetNodeReporter();
+    // The progress we are reporting using 'm_reporting_node'.
+    void nodeReport(qint8 percentage);
     // Parse a byte array into several packets. Extract the tcp dump magic word too.
     bool parse(const QByteArray &blob);
     // How many packets are available.

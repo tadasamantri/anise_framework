@@ -1,6 +1,7 @@
 #include "node.h"
 #include "../data/datafactory.h"
 #include "data/errordata.h"
+#include "data/messagedata.h"
 #include "nodegatetask.h"
 #include "../settings.h"
 #include "../progressinfo.h"
@@ -128,6 +129,31 @@ bool CNode::isProcessing() const
     return m_processing;
 }
 
+qint32 CNode::getInputCount(QString gate_name)
+{
+    QSharedPointer<CGate> gate = findInputGate(gate_name);
+    if(!gate.isNull()) {
+        return gate->inputLinks();
+    }
+    else {
+        return 0;
+    }
+}
+
+void CNode::setProgress(qint8 percentage)
+{
+    if(CSettings::progress()) {
+        CProgressInfo progress;
+        progress.setSrc(CProgressInfo::ESource::node);
+        progress.setState(CProgressInfo::EState::processing);
+        progress.setMsg(CProgressInfo::EMsg::percentage);
+        progress.setInfo(static_cast<qint32>(percentage));
+        progress.setName(getConfig().getName());
+
+        progress.printProgress();
+    }
+}
+
 
 //------------------------------------------------------------------------------
 // Protected Functions
@@ -183,31 +209,6 @@ void CNode::commitError(QString gate_name, QString error_msg)
     gate_and_data.first = gate_name;
     gate_and_data.second = perror;
     m_commit_list.append(gate_and_data);
-}
-
-qint32 CNode::getInputCount(QString gate_name)
-{
-    QSharedPointer<CGate> gate = findInputGate(gate_name);
-    if(!gate.isNull()) {
-        return gate->inputLinks();
-    }
-    else {
-        return 0;
-    }
-}
-
-void CNode::setProgress(qint8 percentage)
-{
-    if(CSettings::progress()) {
-        CProgressInfo progress;
-        progress.setSrc(CProgressInfo::ESource::node);
-        progress.setState(CProgressInfo::EState::processing);
-        progress.setMsg(CProgressInfo::EMsg::percentage);
-        progress.setInfo(static_cast<qint32>(percentage));
-        progress.setName(getConfig().getName());
-
-        progress.printProgress();
-    }
 }
 
 
@@ -288,8 +289,23 @@ void CNode::startGateTask(QString gate_name, const CConstDataPointer &data)
 void CNode::setProcessing(bool proc)
 {
     m_processing = proc;
-
     emit processing(proc);
+}
+
+void CNode::genericData(QString gate_name, const CConstDataPointer &data)
+{
+    if(data->getType() == "message") {
+        // If its a message, just print it to stdout.
+        auto sp_msg = data.staticCast<const CMessageData>();
+        qDebug() << getConfig().getName() << ":"
+                 << gate_name << "Message:" << sp_msg->getMessage();
+    }
+    else if(data->getType() == "error") {
+        // If the data was an error message.
+        auto sp_error = data.staticCast<const CErrorData>();
+        qCritical() << getConfig().getName() << ":"
+                    << gate_name << "Error:" << sp_error->getMessage();
+    }
 }
 
 void CNode::onTaskFinished()

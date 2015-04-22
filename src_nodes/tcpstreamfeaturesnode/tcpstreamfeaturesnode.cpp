@@ -26,6 +26,7 @@ void CTcpStreamFeaturesNode::configure(CNodeConfig &config)
 {
     // Add parameters
     config.addInt("timezone", "GMT time", "The timezone value.", 0);
+    config.addBool("timestamp", "Timestamps", "Use timestamps instead of formatted dates.");
     config.addBool("split_dest_ip", "Split Destination IP",
                    "Split each octet of the destination IP address as different features.",
                    false);
@@ -60,44 +61,48 @@ bool CTcpStreamFeaturesNode::start()
     return createFeaturesTable();
 }
 
-void CTcpStreamFeaturesNode::data(QString gate_name, const CConstDataPointer &data)
+bool CTcpStreamFeaturesNode::data(QString gate_name, const CConstDataPointer &data)
 {
     Q_UNUSED(gate_name);
 
-    // Process framework messages.
-    if(data->getType() == "message") {
-        auto pmsg = data.staticCast<const CMessageData>();
-        QString msg = pmsg->getMessage();
-        qDebug() << "Received message:" << msg;
-        if(msg == "error") {
-            commitError("out", "Could not get tcp streams.");
-            return;
-        }
-    }
-    // Process TCP streams.
-    else if(data->getType() == "tcpstreams") {
+    if(data->getType() == "tcpstreams") {
         auto tcp_streams = data.staticCast<const CTcpStreamsData>();
 
-        // Report that we are starting.
-        if(m_processed_streams == 0) {
-            setProgress(0);
-        }
+        // Progress reporting things.
+        qint32 progress = 0;
+        qint32 progress_total = tcp_streams->totalStreamsCount();
+        qint32 progress_step = progress_total / 100;
+        setProgress(0);
 
         // Optimize the row allocation space for the table.
         m_table->reserveRows(m_table->rowCount() +
                              tcp_streams->totalStreamsCount());
 
         // Process the closed streams.
-        auto closed_streams_it = tcp_streams->getClosedStreams().constBegin();
-        for(; closed_streams_it != tcp_streams->getClosedStreams().constEnd(); ++closed_streams_it) {
-            const CTcpStream* stream = *closed_streams_it;
+        QList<CTcpStream*> closed_streams = tcp_streams->getClosedStreams();
+        auto closed_streams_it = closed_streams.begin();
+        for(; closed_streams_it != closed_streams.end(); ++closed_streams_it) {
+            CTcpStream* stream = *closed_streams_it;
             extractFeatures(*stream);
+            // Report progress every so often.
+            ++progress;
+            if(progress % 10000 == 0) {
+                setProgress(static_cast<qint64>(progress) * 100 /
+                            static_cast<qint64>(progress_total));
+            }
         }
         // Process the open streams.
-        auto open_streams_it = tcp_streams->getOpenStreams().constBegin();
-        for(; open_streams_it != tcp_streams->getOpenStreams().constEnd(); ++open_streams_it) {
-            const CTcpStream* stream = *open_streams_it;
+        QList<CTcpStream*> open_streams = tcp_streams->getOpenStreams();
+        auto open_streams_it = open_streams.begin();
+        for(; open_streams_it != open_streams.end(); ++open_streams_it) {
+            CTcpStream* stream = *open_streams_it;
             extractFeatures(*stream);
+            // Report progress every so often.
+            ++progress;
+            if(progress % progress_step == 0) {
+                setProgress(static_cast<qint64>(progress) * 100 /
+                            static_cast<qint64>(progress_total));
+            }
         }
 
         ++m_processed_streams;
@@ -105,6 +110,7 @@ void CTcpStreamFeaturesNode::data(QString gate_name, const CConstDataPointer &da
         if(m_processed_streams == getInputCount("in")) {
             // We have processed all the streams. Commit and finish.
             // Sort by date and then time (fields 0 and 1).
+            setProgress(95);
             m_table->sort(0, 1);
             // Commit.
             commit("out", m_table);
@@ -113,10 +119,11 @@ void CTcpStreamFeaturesNode::data(QString gate_name, const CConstDataPointer &da
 
             setProgress(100);
         }
-        else {
-            setProgress(m_processed_streams * 100 / getInputCount("in"));
-        }
+
+        return true;
     }
+
+    return false;
 }
 
 bool CTcpStreamFeaturesNode::createFeaturesTable()
@@ -126,8 +133,13 @@ bool CTcpStreamFeaturesNode::createFeaturesTable()
 
     if(!m_table.isNull()) {
         // Set the table headers at the same time.
-        m_table->addHeader("Date");
-        m_table->addHeader("Time");
+        if(!getConfig().getParameter("timestamp")->value.toBool()) {
+            m_table->addHeader("Date");
+            m_table->addHeader("Time");
+        }
+        else {
+            m_table->addHeader("Timestamp");
+        }
 
         // Total Packets
         if(getConfig().getParameter("packet_count")->value.toBool()) {
@@ -196,16 +208,24 @@ void CTcpStreamFeaturesNode::extractFeatures(const CTcpStream &tcp_stream)
     // DATE TIME DEST_IP DEST_PORT SRC_IP SRC_PORT DUR F1 F2 F3 LEN W1 ... W8
 
     // Date & Time
-    QDateTime datetime;
+    QVariant timestamp = getConfig().getParameter("timestamp")->value;
     QVariant timezone_offset = getConfig().getParameter("timezone")->value;
-    // Timezone parameter is in hours, we need it in seconds.
-    datetime.setOffsetFromUtc(timezone_offset.toInt() * 3600);
-    datetime.setTime_t(tcp_stream.start_time);
-    QString time_string = datetime.toString(QString("MM/dd/yyyy hh:mm:ss"));
-    QStringList split_time = time_string.split(" ");
-    // Append time.
-    row << split_time.at(0);
-    row << split_time.at(1);
+    if(!timestamp.toBool()) {
+        // Do not use timestamps, use formatted dates.
+        QDateTime datetime;
+        // Timezone parameter is in hours, we need it in seconds.
+        datetime.setOffsetFromUtc(timezone_offset.toInt() * 3600);
+        datetime.setTime_t(tcp_stream.start_time);
+        QString time_string = datetime.toString(QString("MM/dd/yyyy hh:mm:ss"));
+        QStringList split_time = time_string.split(" ");
+        // Append time.
+        row << split_time.at(0);
+        row << split_time.at(1);
+    }
+    else {
+        // Use timestamps only.
+        row << tcp_stream.start_time + timezone_offset.toInt() * 3600;
+    }
 
     // The number of packets in the stream
     bool packet_count = getConfig().getParameter("packet_count")->value.toBool();
@@ -229,8 +249,15 @@ void CTcpStreamFeaturesNode::extractFeatures(const CTcpStream &tcp_stream)
         }
     }
     else {
-        qCritical() << "Destination non-splitting not implemented!";
-        row << "0.0.0.0";
+        unsigned char octet[4] = {0, 0, 0, 0};
+        for(int i = 0; i < 4; ++i) {
+            octet[i] = (tcp_stream.destination_addr >> (i * 8)) & 0xFF;
+        }
+        row << QString("%1.%2.%3.%4").
+               arg(QString::number(octet[3])).
+               arg(QString::number(octet[2])).
+               arg(QString::number(octet[1])).
+               arg(QString::number(octet[0]));
     }
 
     // Destination Port
@@ -251,8 +278,15 @@ void CTcpStreamFeaturesNode::extractFeatures(const CTcpStream &tcp_stream)
         }
     }
     else {
-        qCritical() << "Source feature non-splitting not implemented!";
-        row << "0.0.0.0";
+        unsigned char octet[4] = {0, 0, 0, 0};
+        for(int i = 0; i < 4; ++i) {
+            octet[i] = (tcp_stream.source_addr >> (i * 8)) & 0xFF;
+        }
+        row << QString("%1.%2.%3.%4").
+               arg(QString::number(octet[3])).
+               arg(QString::number(octet[2])).
+               arg(QString::number(octet[1])).
+               arg(QString::number(octet[0]));
     }
 
     // Source Port

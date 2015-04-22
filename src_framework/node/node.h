@@ -49,6 +49,10 @@ class CNode : public QObject
     void processData(QString gate_name, const CConstDataPointer &data);
     // Is the node currently processing data?
     bool isProcessing() const;
+    // Return the number of incomming connections into a particular gate.
+    qint32 getInputCount(QString gate_name);
+    // Report progress
+    void setProgress(qint8 percentage);
 
   protected:
     // ***************************************************
@@ -58,8 +62,9 @@ class CNode : public QObject
     // ... Return true on successfull start.
     virtual bool start() = 0;
     // Function that processes data sent to this node. This processing is
-    //... performed in another thread.
-    virtual void data(QString gate_name, const CConstDataPointer &data) = 0;
+    // ... performed in another thread. Returns true if the data was
+    // ... processed by the Node.
+    virtual bool data(QString gate_name, const CConstDataPointer &data) = 0;
     //***********************************************************
     // Helper functions to ease the life of the Node programmers.
     // **********************************************************
@@ -70,12 +75,6 @@ class CNode : public QObject
     void commit(QString gate_name, const CConstDataPointer &data);
     // Send an Error message through the specified gate.
     void commitError(QString gate_name, QString error_msg);
-    // Return the number of incomming connections into a particular gate.
-    qint32 getInputCount(QString gate_name);
-    //***********************************************************
-    // Report progress
-    // **********************************************************
-    void setProgress(qint8 percentage);
 
   private:
     // Collection of input gates.
@@ -110,8 +109,10 @@ class CNode : public QObject
     QSharedPointer<CGate> findInputGate(QString name) const;
     QSharedPointer<CGate> findOutputGate(QString name) const;
     void startGateTask(QString gate_name, const CConstDataPointer &data);
-    // Safely access and modify the 'm_processing' flag.
+    // Access and modify the 'm_processing' flag.
     void setProcessing(bool processing);
+    // Try to process a data object in a generic way.
+    void genericData(QString gate_name, const CConstDataPointer &data);
 
   private slots:
     void onTaskFinished();

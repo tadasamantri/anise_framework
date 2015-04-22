@@ -64,32 +64,23 @@ bool CLeradNode::start()
     }
 }
 
-void CLeradNode::data(QString gate_name, const CConstDataPointer &data)
+bool CLeradNode::data(QString gate_name, const CConstDataPointer &data)
 {
     Q_UNUSED(gate_name);
 
-    qDebug() << "Data received.";
-
-    if(data->getType() == "message") {
-        // Process framework messages.
-        auto pmsg = data.staticCast<const CMessageData>();
-        QString msg = pmsg->getMessage();
-        qDebug() << "Received message:" << msg;
-        if(msg == "error") {
-            commitError("out", "Could not get tcp file data.");
-            return;
-        }
-    }
-    else if(data->getType() == "table") {
+    if(data->getType() == "table") {
         // Process table data.
         auto table = data.staticCast<const CTableData>();
         if(!table.isNull()) {
             lerad(table);
         }
         else {
-            commitError("out", "No valid table received.");
+            commitError("out", "LERAD did not receive a valid table.");
         }
+        return true;
     }
+
+    return false;
 }
 
 void CLeradNode::lerad(const QSharedPointer<const CTableData> &table)

@@ -52,22 +52,11 @@ bool CRuleEvalNode::start()
     }
 }
 
-void CRuleEvalNode::data(QString gate_name, const CConstDataPointer &data)
+bool CRuleEvalNode::data(QString gate_name, const CConstDataPointer &data)
 {
     Q_UNUSED(gate_name);
-    qDebug() << "Data received.";
 
-    // Process framework messages.
-    if(data->getType() == "message") {
-        auto pmsg = data.staticCast<const CMessageData>();
-        QString msg = pmsg->getMessage();
-        qDebug() << "Received message:" << msg;
-        if(msg == "error") {
-            commitError("out", "Could not get tcp file data.");
-            return;
-        }
-    }
-    else if(data->getType() == "table") {
+    if(data->getType() == "table") {
         m_table_data = data.staticCast<const CTableData>();
         // Setup the anomalies table header by copying the header of the test table.
         m_anomalies_data->addHeader(m_table_data->header());
@@ -79,6 +68,8 @@ void CRuleEvalNode::data(QString gate_name, const CConstDataPointer &data)
         if(!m_table_data.isNull() && !m_ruleset_data.isNull()) {
             evaluate();
         }
+
+        return true;
     }
     else if(data->getType() == "ruleset") {
         QSharedPointer<const CRulesetData> ruleset =
@@ -89,7 +80,11 @@ void CRuleEvalNode::data(QString gate_name, const CConstDataPointer &data)
         if(!m_table_data.isNull() && !m_ruleset_data.isNull()) {
             evaluate();
         }
+
+        return true;
     }
+
+    return false;
 }
 
 void CRuleEvalNode::evaluate()

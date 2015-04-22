@@ -72,22 +72,13 @@ bool CTcpStreamExtractorNode::start()
     }
 }
 
-void CTcpStreamExtractorNode::data(QString gate_name,
+bool CTcpStreamExtractorNode::data(QString gate_name,
                                    const CConstDataPointer &data)
 {
     // No need to track gates.
     Q_UNUSED(gate_name);
 
-    if(data->getType() == "message") {
-        auto pmsg = data.staticCast<const CMessageData>();
-        QString msg = pmsg->getMessage();
-        qDebug() << "Received message:" << msg;
-        if(msg == "error") {
-            commitError("out", "Could not get the TCP packets.");
-            return;
-        }
-    }
-    else if(data->getType() == "tcpdump") {
+    if(data->getType() == "tcpdump") {
         auto tcp_dump = data.staticCast<const CTcpDumpData>();
 
         // User parameters.
@@ -132,10 +123,13 @@ void CTcpStreamExtractorNode::data(QString gate_name,
         }
 
         qDebug() << "TCP streams left open:" << m_tcp_streams->openStreamsCount();
+        qDebug() << "TCP streams closed:" << m_tcp_streams->closedStreamsCount();
 
         commit("out", m_tcp_streams);
         // Clear the memory used by m_tcp_streams.
         m_tcp_streams.clear();
-        return;
+        return true;
     }
+
+    return false;
 }

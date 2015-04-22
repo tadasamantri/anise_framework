@@ -24,6 +24,7 @@ class CTableData: public CData
     qint32 colCount() const;
     void addHeader(QString attr);
     void addHeader(const QList<QString> &attrs);
+    qint32 findHeader(QString attr) const;
     const QList<QString> &header() const;
     qint32 headerSize() const;
     QList<QVariant> &newRow();

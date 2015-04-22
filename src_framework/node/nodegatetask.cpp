@@ -37,9 +37,15 @@ void CNodeGateTask::run()
     // ... is called.
     m_node.m_allow_commit = true;
     // Perform the actual processing of the data.
-    m_node.data(m_gate_name, m_data);
+    bool processed = m_node.data(m_gate_name, m_data);
     // Dissalow the commit functions outside of the nodes' data function.
     m_node.m_allow_commit = false;
+
+    // If a Node did not process the data it was sent, try to process it
+    // ... in a generic way if we know how to treat the data.
+    if(!processed) {
+        m_node.genericData(m_gate_name, m_data);
+    }
 
     // Report that we are finished processing, if apropriate.
     if(CSettings::progress()) {

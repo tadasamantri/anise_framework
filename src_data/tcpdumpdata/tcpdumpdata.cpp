@@ -9,6 +9,7 @@ CTcpDumpData::CTcpDumpData()
     , m_magic_word(4, static_cast<char>(0))
     , m_little_endian(true)
     , m_packets()
+    , m_reporting_node(nullptr)
 {
 
 }
@@ -17,6 +18,23 @@ CTcpDumpData::~CTcpDumpData()
 {
     // Delete packets that have been parsed.
     // packets are deleted automatically because of the shared pointer.
+}
+
+void CTcpDumpData::setNodeReporter(CNode *node)
+{
+    m_reporting_node = node;
+}
+
+void CTcpDumpData::unsetNodeReporter()
+{
+    m_reporting_node = nullptr;
+}
+
+void CTcpDumpData::nodeReport(qint8 percentage)
+{
+    if(m_reporting_node != nullptr) {
+        m_reporting_node->setProgress(percentage);
+    }
 }
 
 
@@ -172,6 +190,13 @@ quint32 CTcpDumpData::parsePackets(const QByteArray &blob, quint32 offset)
 
         // Save the packet.
         m_packets.append(p);
+
+        // Report progress every so often.
+        if(m_packets.size() % 80000 == 0) {
+            qint64 percentage = static_cast<qint64>(offset) * 100 /
+                    static_cast<qint64>(blob_size);
+            nodeReport(static_cast<qint8>(percentage));
+        }
     }
 
     return offset;

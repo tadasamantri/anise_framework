@@ -17,6 +17,10 @@ CTableData::CTableData(const CTableData &data)
     qDebug() << "CTableData copy Constructor called.";
 }
 
+
+//------------------------------------------------------------------------------
+// Public Functions
+
 qint32 CTableData::colCount() const
 {
     if(m_table.size() > 0) {
@@ -38,6 +42,12 @@ void CTableData::addHeader(const QList<QString> &attrs)
     }
 }
 
+// Search the headers for 'attr' and return its index or -1 if not found.
+qint32 CTableData::findHeader(QString attr) const
+{
+    return m_header.indexOf(attr);
+}
+
 const QList<QString> &CTableData::header() const
 {
     return m_header;
@@ -47,9 +57,6 @@ qint32 CTableData::headerSize() const
 {
     return m_header.size();
 }
-
-//------------------------------------------------------------------------------
-// Public Functions
 
 QList<QVariant> &CTableData::newRow()
 {

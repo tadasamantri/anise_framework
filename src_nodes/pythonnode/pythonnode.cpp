@@ -64,21 +64,11 @@ bool CPythonNode::start()
     return true;
 }
 
-void CPythonNode::data(QString gate_name, const CConstDataPointer &data)
+bool CPythonNode::data(QString gate_name, const CConstDataPointer &data)
 {
     Q_UNUSED(gate_name);
 
-    // Process framework messages.
-    if(data->getType() == "message") {
-        auto pmsg = data.staticCast<const CMessageData>();
-        QString msg = pmsg->getMessage();
-        qDebug() << "Received message:" << msg;
-        if(msg == "error") {
-            commitError("out", "Could not get tcp file data.");
-            return;
-        }
-    }
-    else if(data->getType() == "table") {
+    if(data->getType() == "table") {
         // Get the table data structured received.
         QSharedPointer<const CTableData> p_table = data.staticCast<const CTableData>();
         // Create a table data structure to forward.
@@ -100,6 +90,8 @@ void CPythonNode::data(QString gate_name, const CConstDataPointer &data)
         if(result.toBool()) {
             commit("out", result_table);
         }
+
+        return true;
     }
     else if(data->getType() == "tcpstreams") {
         // The TCP Streams data structure.
@@ -124,7 +116,10 @@ void CPythonNode::data(QString gate_name, const CConstDataPointer &data)
             commit("out", result_table);
         }
 
+        return true;
     }
+
+    return false;
 }
 
 void CPythonNode::initPython()
