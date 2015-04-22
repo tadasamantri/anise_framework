@@ -5,7 +5,6 @@ TARGET = tcpdumpnode
 TEMPLATE = lib
 CONFIG += plugin
 QMAKE_CXXFLAGS += -std=c++11
-QMAKE_LFLAGS_PLUGIN += -g
 
 INCLUDEPATH += ../../src_framework \
                ../../src_data
@@ -22,7 +21,8 @@ CONFIG(debug,debug|release) {
   OBJECTS_DIR = build/release
   MOC_DIR = build/release/moc
   RCC_DIR = build/release/rcc
-  DEFINES += QT_NO_DEBUG_OUTPUT
+  #DEFINES += QT_NO_DEBUG_OUTPUT
+  DEFINES += QT_MESSAGELOGCONTEXT
 }
 
 QMAKE_CLEAN += $$DESTDIR/*$$TARGET*

@@ -23,6 +23,7 @@ CONFIG(debug,debug|release) {
   MOC_DIR = build/release/moc
   RCC_DIR = build/release/rcc
   #DEFINES += QT_NO_DEBUG_OUTPUT
+  DEFINES += QT_MESSAGELOGCONTEXT
 }
 
 QMAKE_CLEAN += $$DESTDIR/*$$TARGET*
