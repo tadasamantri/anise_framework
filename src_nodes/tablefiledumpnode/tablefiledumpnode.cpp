@@ -45,6 +45,8 @@ bool CTableFileDumpNode::start()
 bool CTableFileDumpNode::data(QString gate_name, const CConstDataPointer &data)
 {
     Q_UNUSED(gate_name);
+    QString info;
+    QString warning;
 
     if(data->getType() == "table") {
         auto table = data.staticCast<const CTableData>();
@@ -55,10 +57,14 @@ bool CTableFileDumpNode::data(QString gate_name, const CConstDataPointer &data)
 
         // Print the table data into the user-supplied filename.
         if(printTable(table, filename, append)) {
-            qDebug() << getConfig().getName() << "dumped table in" << filename;
+            info = getConfig().getName() + " dumped table in " + filename;
+            qDebug() << info;
+            setLogInfo(info);
         }
         else {
-            qWarning() << getConfig().getName() << "could NOT dump Table in" << filename;
+            warning = getConfig().getName() + " could NOT dump Table in " + filename;
+            qWarning() << warning;
+            setLogWarning(warning);
         }
 
         return true;
@@ -113,4 +119,3 @@ bool CTableFileDumpNode::printTable(QSharedPointer<const CTableData> &table,
 
     return true;
 }
-

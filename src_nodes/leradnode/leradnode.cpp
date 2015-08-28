@@ -85,6 +85,8 @@ bool CLeradNode::data(QString gate_name, const CConstDataPointer &data)
 
 void CLeradNode::lerad(const QSharedPointer<const CTableData> &table)
 {
+    QString info;
+    QString warning;
     // Seed the algorithm.
     qsrand(getConfig().getParameter("rseed")->value.toUInt());
 
@@ -95,7 +97,9 @@ void CLeradNode::lerad(const QSharedPointer<const CTableData> &table)
     // Number of attributes
     qint32 attribute_count = table->colCount();
     if(attribute_count < 2) {
-        qWarning() << "LERAD needs at least 2 attributes to create rules.";
+        warning = "LERAD needs at least 2 attributes to create rules.";
+        qWarning() << warning;
+        setLogWarning(warning);
         return;
     }
     m_ruleset->attributeCount(attribute_count);
@@ -119,10 +123,14 @@ void CLeradNode::lerad(const QSharedPointer<const CTableData> &table)
         dataset.append(t);
     }
     m_ruleset->tuplesCount(dataset.size());
-    qDebug() << "LERAD:: Dataset size:" << dataset.size();
+    info = "LERAD:: Dataset size: " + QVariant(dataset.size()).toString();
+    qDebug() << info;
+    setLogInfo(info);
 
     if(dataset.size() < 2) {
-        qWarning() << "LERAD:: Cannot work with less than two tuples.";
+        warning = "LERAD:: Cannot work with less than two tuples.";
+        qWarning() << warning;
+        setLogWarning(warning);
         return;
     }
 
@@ -195,7 +203,9 @@ void CLeradNode::lerad(const QSharedPointer<const CTableData> &table)
             }
         }
     }
-    qDebug() << "LERAD:: Initial Rules:" << m_ruleset->size();
+    info = "LERAD:: Initial Rules: " + QVariant(m_ruleset->size()).toString();
+    qDebug() << info;
+    setLogInfo(info);
 
     // 5- Estimate the support of each rule using the samples.
     QList<CRule> &ruleset = m_ruleset->getRules();
@@ -258,8 +268,9 @@ void CLeradNode::lerad(const QSharedPointer<const CTableData> &table)
             ++it;
         }
     }
-    qDebug() << "LERAD:: Pruned Rules:" << ruleset.size();
-
+    info = "LERAD:: Pruned Rules: " + QVariant(ruleset.size()).toString();
+    qDebug() << info;
+    setLogInfo(info);
     // 7- Calculate exact support for top rules on entire training set
     std::sort(ruleset.begin(), ruleset.end());
     // Reset the cover.
@@ -342,7 +353,9 @@ void CLeradNode::dumpRules(const QList<QString> &header,
 {
     QFile file(filename);
     if(!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qWarning() << "LERAD:: Could not write rules to" << filename;
+        QString warning = "LERAD:: Could not write rules to " + filename;
+        qWarning() << warning;
+        setLogWarning(warning);
         return;
     }
     QTextStream file_stream(&file);
@@ -380,30 +393,3 @@ void CLeradNode::dumpRules(const QList<QString> &header,
     file_stream.flush();
     file.close();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
