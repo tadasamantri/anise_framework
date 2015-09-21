@@ -46,7 +46,8 @@ void CTcpStreamFeaturesNode::configure(CNodeConfig &config)
                    "The number of characters a word can be matched to.", 16);
     config.addBool("packet_count", "Show Packet Count",
                    "Include the total number of packets parsed by the stream.", false);
-
+    //Set the category
+    config.setCategory("Tcp");
     // Add the gates.
     config.addInput("in", "tcpstreams");
     config.addOutput("out", "table");

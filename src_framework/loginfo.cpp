@@ -4,7 +4,6 @@
 #include <QJsonObject>
 #include <QDebug>
 #include <QDateTime>
-#define tadasa
 
 CLogInfo::CLogInfo()
     : m_src(ESource::null)

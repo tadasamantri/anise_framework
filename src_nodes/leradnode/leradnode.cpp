@@ -45,6 +45,8 @@ void CLeradNode::configure(CNodeConfig &config)
     // Add the gates.
     config.addInput("in", "table");
     config.addOutput("out", "ruleset");
+    //Set the category
+    config.setCategory("Algorithm");
 }
 
 

@@ -28,6 +28,8 @@ void CFileNode::configure(CNodeConfig &config)
 
     // Add inputs and outputs
     config.addOutput("out", "file");
+    //set category
+    config.setCategory("Others");
 }
 
 //------------------------------------------------------------------------------

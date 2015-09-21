@@ -28,7 +28,8 @@ void CTableFileDumpNode::configure(CNodeConfig &config)
     config.addBool("append", "Append the table data",
                    "Append the data to the output file instead of replacing it.",
                    false);
-
+    //Set the category
+    config.setCategory("Others");
     // Add the gates.
     config.addInput("in", "table");
 }

@@ -43,7 +43,8 @@ void CTcpStreamExtractorNode::configure(CNodeConfig &config)
     config.addUInt("dest_port_filter_to", "Last Valid Destination Port",
                    "Packages targeting a destination port below this "
                    "parameter are accepted", 1024);
-
+    //Set the category
+    config.setCategory("Tcp");
     // Add the gates.
     config.addInput("in", "tcpdump");
     config.addOutput("out", "tcpstreams");

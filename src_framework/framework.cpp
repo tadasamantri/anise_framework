@@ -174,7 +174,7 @@ void CFramework::printNodes()
         CNodeFactory::instance().configTemplate(node_classes.at(i), config);
         json_node["class"] = node_classes.at(i);
         json_node["description"] = config.getDescription();
-
+        json_node["category"] = config.getCategory();
         // Print the parameters of the node.
         QJsonArray json_parameters;
         QStringList node_parameters = config.getAllParameters();

@@ -186,7 +186,15 @@ const QList<CNodeConfig::SGateTemplate> &CNodeConfig::getOutputTemplates() const
     return m_output_templates;
 }
 
+QString CNodeConfig::getCategory() const
+{
+    return m_category;
+}
 
+void CNodeConfig::setCategory(const QString &value)
+{
+    m_category = value;
+}
 //------------------------------------------------------------------------------
 // Public Slots
 

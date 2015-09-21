@@ -21,7 +21,8 @@ CTcpDumpNode::CTcpDumpNode(const CNodeConfig &config, QObject *parent/* = 0*/)
 void CTcpDumpNode::configure(CNodeConfig &config)
 {
     config.setDescription("Parse the contents received into TCP Packets.");
-
+    //Set the category
+    config.setCategory("Tcp");
     // Add inputs and outputs
     config.addInput("in", "file");
     config.addOutput("out", "tcpdump");
